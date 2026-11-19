@@ -1,11 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import { json } from 'express';
 import { AppModule } from './app.module';
-import { AllExceptionsFilter } from './common/all-exceptions.filter';
-import { bodyParserErrorHandler } from './common/body-parser-error';
-import { createValidationPipe } from './common/validation';
+import { configureApp } from './app.setup';
 import { config } from './config';
 
 async function bootstrap() {
@@ -13,15 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(), {
     bodyParser: false,
   });
-
-  app.disable('x-powered-by');
-  app.use(json({ limit: '100kb' }));
-  app.use(bodyParserErrorHandler);
-
-  app.setGlobalPrefix('api/v1');
-  app.enableCors({ origin: config.webOrigins });
-  app.useGlobalPipes(createValidationPipe());
-  app.useGlobalFilters(new AllExceptionsFilter());
+  configureApp(app);
 
   // При остановке (Ctrl+C) Nest закроет соединение с MongoDB и сервер
   app.enableShutdownHooks();
