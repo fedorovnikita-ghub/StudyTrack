@@ -8,6 +8,7 @@ import { CoursesModule } from './courses/courses.module';
 import { DatabaseModule } from './database/database.module';
 import { GradesModule } from './grades/grades.module';
 import { HealthController } from './health/health.controller';
+import { ReportsModule } from './reports/reports.module';
 import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
     AssignmentsModule,
     SubmissionsModule,
     GradesModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })

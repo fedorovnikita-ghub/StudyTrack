@@ -1,0 +1,21 @@
+{
+  "name": "studytrack-report-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Отдельный сервис отчетов StudyTrack на Express: сводка фактов group/value",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

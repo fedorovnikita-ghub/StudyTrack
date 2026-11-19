@@ -23,6 +23,8 @@ copy .env.example .env
 | `MONGODB_URI_TEST` | та же строка, но с базой `/studytrack_test` |
 | `JWT_SECRET` | результат команды ниже |
 | `WEB_ORIGIN` | `http://localhost:3000` |
+| `REPORT_SERVICE_URL` | `http://127.0.0.1:4100` |
+| `REPORT_SERVICE_KEY` | любая строка от 16 символов, такая же, как в `report-service\.env` |
 
 ```powershell
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
@@ -35,12 +37,21 @@ copy .env.example .env.local
 
 В `web\.env.local`: `NEXT_PUBLIC_API_URL=http://localhost:4000`
 
+```powershell
+cd C:\StudyTrack\report-service
+copy .env.example .env
+```
+
+В `report-service\.env`: `REPORT_SERVICE_KEY` — та же строка, что в `api\.env`
+
 - [ ] Установлены зависимости:
 
 ```powershell
 cd C:\StudyTrack\api
 npm install
 cd C:\StudyTrack\web
+npm install
+cd C:\StudyTrack\report-service
 npm install
 ```
 
@@ -83,7 +94,7 @@ npm run user:create
 
 ## 3. Запуск в режиме разработки
 
-Два отдельных окна терминала.
+Три отдельных окна терминала.
 
 ```powershell
 cd C:\StudyTrack\api
@@ -97,6 +108,12 @@ cd C:\StudyTrack\web
 npm run dev
 ```
 
+```powershell
+cd C:\StudyTrack\report-service
+npm run dev
+```
+
+- [ ] В логе `report-service запущен: http://127.0.0.1:4100`
 - [ ] http://localhost:3000 открывается, блок «Состояние системы» зеленый: «API и база данных доступны»
 
 ---
@@ -116,8 +133,14 @@ npm run typecheck
 npm run lint
 ```
 
-- [ ] typecheck и lint без ошибок в обеих папках
-- [ ] `npm test`: 7 файлов, 27 тестов, все зеленые (через Atlas идут 1–3 минуты)
+```powershell
+cd C:\StudyTrack\report-service
+npm test
+```
+
+- [ ] typecheck и lint без ошибок в `api` и `web`
+- [ ] `api`: `npm test` — 10 файлов, 39 тестов, все зеленые (через Atlas идут 1–3 минуты)
+- [ ] `report-service`: `npm test` — 8 тестов, все зеленые
 
 ---
 
@@ -134,6 +157,11 @@ npm start
 ```powershell
 cd C:\StudyTrack\web
 npm run build
+npm start
+```
+
+```powershell
+cd C:\StudyTrack\report-service
 npm start
 ```
 
@@ -215,14 +243,26 @@ npm start
 - [ ] Остановить API (Ctrl+C): индикатор «нет связи, переподключаемся». Запустить API: «онлайн», данные перечитаны
 - [ ] После «Выйти» в DevTools → Network → WS соединение закрыто
 
-### 6.8. Ошибки и устойчивость
+### 6.8. Отчеты, CSV и report-service (Анна)
+
+- [ ] На странице курса кнопка «Отчет курса». У студента такой страницы нет («Нет доступа»)
+- [ ] Период больше 90 дней или конец раньше начала: ошибка у поля, запрос не уходит
+- [ ] Таблица «Сдаваемость и просрочки» с итоговой строкой. Для демо-курса JS по «Лабораторной 2»: студентов 3, сдали 2, не сдала 1 (Мария), пропустила срок 1
+- [ ] Таблица «Текущие результаты студентов» и «Средний результат курса»
+- [ ] Блок «Средний балл по заданиям» заполнен (считает report-service)
+- [ ] Остановить report-service (Ctrl+C) и нажать «Построить»: в блоке «Средний балл» ошибка «Сервис отчетов временно недоступен» и кнопка «Повторить». Остальные таблицы на месте, студент может сдать работу. Запустить сервис и нажать «Повторить»: данные вернулись
+- [ ] «Скачать CSV»: файл открывается в Excel с колонками на русском, видны версии с опозданием и оценки
+- [ ] Студент с именем, начинающимся с `=` (например `=1+1`), в CSV показан как текст, формула не выполняется
+- [ ] Ручной пример из `docs/reports.md` совпадает с unit-тестом `report-calc.spec.ts`
+
+### 6.9. Ошибки и устойчивость
 
 - [ ] Остановить API: страницы показывают «Нет связи с сервером» и кнопку «Повторить»
 - [ ] Неверный адрес вида `/courses/123`: понятная страница «не найден»
 - [ ] Несуществующая страница сайта: «Страница не найдена»
 - [ ] **Сохранность после перезапуска:** создать курс или оценку, перезапустить API и сайт, войти снова. Данные на месте (они в MongoDB, а не в памяти)
 
-### 6.9. Интерфейс
+### 6.10. Интерфейс
 
 - [ ] DevTools → режим устройства, ширина **390 px**: главные кнопки доступны, таблицы прокручиваются внутри своего блока, формы не вылезают за экран
 - [ ] Ширина **1280 px**: все аккуратно
@@ -248,9 +288,6 @@ npm start
 
 ## 8. Еще не сделано (следующие шаги)
 
-- [ ] Отчеты курса: сдаваемость, просрочки, средние; `GET /courses/:id/report`
-- [ ] Потоковая выгрузка `GET /reports/export.csv`
-- [ ] report-service (Express): `/health`, `/summary`, ответ 503 при его остановке
 - [ ] GraphQL: `myCourses(page)` и `assignment(id)`
 - [ ] Кеш описания курса на 60 секунд, `explain` на 1000+ фактах
 - [ ] Пример Prisma `scripts/prisma-read`

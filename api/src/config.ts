@@ -45,4 +45,10 @@ export const config = {
   webOrigins: list('WEB_ORIGIN', 'http://localhost:3000'),
   jwtSecret: secret('JWT_SECRET', 32),
   jwtExpiresInSec: 60 * 60, // токен живет 60 минут, как в ТЗ
+  // Отдельный сервис отчетов. Без ключа основной API работает, а отчет "средние баллы" отвечает 503
+  reportService: {
+    url: (process.env.REPORT_SERVICE_URL?.trim() || 'http://127.0.0.1:4100').replace(/\/+$/, ''),
+    key: process.env.REPORT_SERVICE_KEY?.trim() || '',
+    timeoutMs: 3000,
+  },
 };

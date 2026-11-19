@@ -155,3 +155,61 @@ export interface CourseResult {
   assignmentsCount: number;
   percent: number | null;
 }
+
+export interface ReportAssignmentRow {
+  id: string;
+  title: string;
+  dueAt: string;
+  maxScore: number;
+  isOverdue: boolean;
+  enrolled: number;
+  submitted: number;
+  onTime: number;
+  lateOnly: number;
+  notSubmitted: number;
+  missed: number;
+  submissionRate: number | null;
+}
+
+export interface ReportStudentRow {
+  studentId: string;
+  displayName: string;
+  totalScore: number;
+  maxTotal: number;
+  percent: number | null;
+  gradedCount: number;
+  lateOnlyCount: number;
+  missedCount: number;
+}
+
+export interface CourseReport {
+  course: { id: string; title: string };
+  period: { from: string; to: string };
+  generatedAt: string;
+  assignments: ReportAssignmentRow[];
+  students: ReportStudentRow[];
+  totals: {
+    assignments: number;
+    enrolled: number;
+    expected: number;
+    submitted: number;
+    onTime: number;
+    lateOnly: number;
+    notSubmitted: number;
+    missed: number;
+    submissionRate: number | null;
+    averagePercent: number | null;
+  };
+}
+
+export interface SummaryReport {
+  period: { from: string; to: string };
+  factsCount: number;
+  items: {
+    assignment: { id: string; title: string; maxScore: number; dueAt: string };
+    count: number;
+    total: number;
+    average: number | null;
+    averagePercent: number | null;
+  }[];
+}

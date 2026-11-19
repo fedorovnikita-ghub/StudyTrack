@@ -43,6 +43,13 @@ export default function CourseView({ courseId }: { courseId: string }) {
                   </>
                 )}
               </dl>
+              {data.isOwner && (
+                <p>
+                  <Link className="btn" href={`/courses/${data.id}/report`}>
+                    Отчет курса
+                  </Link>
+                </p>
+              )}
               {/* Текст выводится как обычный текст: React экранирует HTML */}
               {data.description ? <p className="pre-wrap">{data.description}</p> : <p className="muted">Описания нет.</p>}
             </section>

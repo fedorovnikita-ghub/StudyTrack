@@ -19,7 +19,7 @@
 StudyTrack/
 ├── api/              основной API: NestJS 11 (Express-адаптер), Mongoose, REST
 ├── web/              сайт: Next.js 16, React 19, TypeScript
-├── report-service/   отдельный сервис отчетов на Express (будет добавлен)
+├── report-service/   отдельный сервис отчетов на Express
 └── scripts/          изолированный пример Prisma (будет добавлен)
 ```
 
@@ -60,7 +60,17 @@ StudyTrack/
 | `MONGODB_URI` | строка подключения к рабочей базе Atlas |
 | `WEB_ORIGIN` | адрес сайта для CORS, по умолчанию `http://localhost:3000` |
 | `MONGODB_URI_TEST` | отдельная база для автотестов. Имя обязательно оканчивается на `_test` |
+| `REPORT_SERVICE_URL` | адрес report-service, по умолчанию `http://127.0.0.1:4100` |
+| `REPORT_SERVICE_KEY` | внутренний ключ report-service (тот же, что в `report-service/.env`). Без него отчет «средние баллы» отвечает 503 |
 | `JWT_SECRET` | секрет подписи JWT, не короче 32 символов. Генерация: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+
+**report-service/.env**
+
+| Переменная | Назначение |
+|---|---|
+| `PORT` | порт сервиса, по умолчанию 4100 |
+| `HOST` | адрес, по умолчанию `127.0.0.1` (снаружи и из браузера сервис недоступен) |
+| `REPORT_SERVICE_KEY` | внутренний ключ, не короче 16 символов |
 
 **web/.env.local**
 
@@ -81,6 +91,13 @@ npm run start:dev
 cd web
 npm install
 copy .env.example .env.local
+npm run dev
+```
+
+```bash
+cd report-service
+npm install
+copy .env.example .env      # затем вписать REPORT_SERVICE_KEY (тот же в api/.env)
 npm run dev
 ```
 
@@ -158,6 +175,10 @@ npm run test:integration  # только HTTP с тестовой MongoDB
 | `test/integration/access.spec.ts` | HTTP + MongoDB, 5 | 401/403/404, чужой курс и чужая работа без утечки текста, потеря доступа после отчисления, 400 на неверный id | нет |
 | `test/integration/main-flow.spec.ts` | HTTP + MongoDB, 4 | основной путь сдачи и оценки, текущий результат, ошибки полей без записи, 409 по version, просрочка и предел версий | срок в прошлом задается прямо в базе: через API его задать нельзя |
 | `test/integration/realtime.spec.ts` | Socket.IO + HTTP + MongoDB, 2 | события доходят автору и преподавателю, но не постороннему. В событии нет текста и баллов. Неверный токен отклоняется | нет: настоящий Socket.IO-клиент |
+| `test/unit/report-calc.spec.ts` | unit, 4 | отчет на ручном примере из docs/reports.md, нулевой результат | нет |
+| `test/unit/csv-and-dates.spec.ts` | unit, 4 | нейтрализация формул, экранирование CSV, период до 90 дней, границы дня по Алматы | нет |
+| `test/integration/reports.spec.ts` | HTTP + MongoDB, 4 | отчет курса и права, report-service работает / остановлен (503 только для отчета), CSV с экранированием и проверками до заголовков | заглушка report-service: проверяет контракт со стороны API, но не сам сервис |
+| `report-service/test/*.test.js` | node:test, 8 | сводка на ручном примере, проверка ключа, типов, конечности чисел, предела массива, битого JSON | нет: настоящее Express-приложение |
 | `test/integration/concurrency.spec.ts` | HTTP + MongoDB, 3 | 5 одновременных сдач → номера 1..5, две одновременные оценки → одна запись, два зачисления → одно действующее | нет |
 
 Интеграционные тесты поднимают настоящий `AppModule` с той же настройкой, что в `main.ts` (`src/app.setup.ts`), и проверяют итоговые документы в базе, а не только HTTP-коды. Преподаватель в тестах создается прямо в базе: через сайт эту роль получить нельзя.
@@ -170,6 +191,12 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm start
+```
+
+```bash
+cd report-service
+npm test
 npm start
 ```
 
@@ -207,6 +234,9 @@ npm start
 | `POST /submissions/:id/grade` | преподаватель курса | оценка версии: `score`, `comment`, `version` |
 | `GET /grading/queue` | преподаватель | кабинет оценивания: работы всех своих курсов (`status`, `courseId`) |
 | `GET /results/my` | студент | личные результаты по курсам |
+| `GET /courses/:id/report` | владелец курса | сдаваемость, просрочки, текущие результаты (`from`, `to`, до 90 дней) |
+| `GET /courses/:id/report/summary` | владелец курса | средний балл по заданиям через report-service (503, если сервис недоступен) |
+| `GET /reports/export.csv` | владелец курса | потоковая CSV-выгрузка журнала сдач (`courseId`, `from`, `to`) |
 
 Чужой курс отвечает `404`, действие не своей роли — `403`, запрос без входа — `401`.
 
@@ -251,6 +281,7 @@ Socket.IO работает на том же порту, что и API. Клие�
 
 - [Чек-лист запуска и приемки](docs/checklist.md)
 - [Модель данных, индексы и согласованность](docs/data-model.md)
+- [Отчеты, CSV и report-service: формулы, ручной расчет, контракт](docs/reports.md)
 
 ## Формат ошибок API
 

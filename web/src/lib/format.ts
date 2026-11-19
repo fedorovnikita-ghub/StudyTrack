@@ -53,3 +53,25 @@ export function almatyInputToIso(value: string): string | null {
   const offset = almatyOffsetMinutes(new Date(wallAsUtc));
   return new Date(wallAsUtc - offset * 60000).toISOString();
 }
+
+// Сегодня по Алматы в формате YYYY-MM-DD (для полей type="date")
+export function todayAlmaty(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date());
+}
+
+// Сдвиг календарной даты YYYY-MM-DD на n дней
+export function addDays(date: string, days: number): string {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+// Число дней в периоде, обе даты включительно
+export function periodDays(from: string, to: string): number {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000) + 1;
+}
+
+export function formatPercent(value: number | null): string {
+  return value === null ? '—' : `${value.toLocaleString('ru-RU')}%`;
+}
