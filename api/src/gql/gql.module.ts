@@ -12,7 +12,13 @@ import { StudyResolver } from './study.resolver';
 // Наши ошибки (из фильтра) и ошибки валидации GraphQL уже безопасны. Прочие - без подробностей
 function formatError(error: GraphQLFormattedError): GraphQLFormattedError {
   const extensions = error.extensions ?? {};
-  const code = typeof extensions.code === 'string' ? extensions.code : 'INTERNAL_ERROR';
+  // Для ошибок наших правил валидации (глубина, размер) точный код лежит в reason
+  const code =
+    typeof extensions.reason === 'string'
+      ? extensions.reason
+      : typeof extensions.code === 'string'
+        ? extensions.code
+        : 'INTERNAL_ERROR';
   const message = code === 'INTERNAL_SERVER_ERROR' || code === 'INTERNAL_ERROR' ? 'Внутренняя ошибка сервера' : error.message;
   return {
     message,

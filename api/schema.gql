@@ -1,0 +1,97 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Assignment {
+  course: CourseRef!
+
+  """Срок сдачи, ISO 8601, UTC"""
+  dueAt: String!
+  id: ID!
+  isOverdue: Boolean!
+
+  """Текущий пользователь - преподаватель этого курса"""
+  isOwner: Boolean!
+  maxScore: Int!
+
+  """Студенту - свои версии, преподавателю - работы курса"""
+  submissions(limit: Int! = 10, page: Int! = 1): SubmissionPage!
+  text: String!
+  title: String!
+}
+
+type CategoryRef {
+  id: ID!
+  name: String!
+}
+
+type Course {
+  category: CategoryRef!
+
+  """ISO 8601, UTC"""
+  createdAt: String!
+  description: String!
+  id: ID!
+
+  """active или archived"""
+  status: String!
+  teacher: Person!
+  title: String!
+}
+
+type CoursePage {
+  items: [Course!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
+type CourseRef {
+  id: ID!
+  title: String!
+}
+
+"""Пользователь в связях: только id и имя"""
+type Person {
+  displayName: String!
+  id: ID!
+}
+
+type Query {
+  """Задание курса, доступного пользователю"""
+  assignment(id: ID!): Assignment!
+
+  """Мои курсы: преподавателю свои, студенту те, куда он зачислен"""
+  myCourses(limit: Int! = 10, page: Int! = 1): CoursePage!
+}
+
+"""Версия работы"""
+type Submission {
+  currentGrade: SubmissionGrade
+  id: ID!
+  isLate: Boolean!
+  number: Int!
+
+  """submitted или graded"""
+  status: String!
+  student: Person!
+
+  """ISO 8601, UTC"""
+  submittedAt: String!
+
+  """Первые 200 символов текста"""
+  textPreview: String!
+}
+
+type SubmissionGrade {
+  """ISO 8601, UTC"""
+  gradedAt: String!
+  score: Int!
+}
+
+type SubmissionPage {
+  items: [Submission!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}

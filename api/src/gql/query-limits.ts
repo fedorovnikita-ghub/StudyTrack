@@ -2,7 +2,9 @@ import { ASTVisitor, FragmentDefinitionNode, GraphQLError, Kind, SelectionSetNod
 
 // Правило валидации GraphQL: ограничивает вложенность и общее число полей запроса.
 // Проверяется до выполнения, поэтому слишком "тяжелый" запрос не доходит до базы.
-// Служебные поля интроспекции (__schema, __type) не учитываются
+// Служебные поля интроспекции (__schema, __type) не учитываются.
+// Apollo заменяет extensions.code ошибок валидации на GRAPHQL_VALIDATION_FAILED,
+// поэтому свой код кладем в extensions.reason (formatError возвращает его в code)
 export function queryLimits({ maxDepth, maxFields }: { maxDepth: number; maxFields: number }) {
   return (context: ValidationContext): ASTVisitor => {
     const fragments = new Map<string, FragmentDefinitionNode>();
@@ -36,14 +38,14 @@ export function queryLimits({ maxDepth, maxFields }: { maxDepth: number; maxFiel
         if (depth > maxDepth) {
           context.reportError(
             new GraphQLError(`Слишком глубокий запрос: ${depth} уровней, допустимо ${maxDepth}`, {
-              extensions: { code: 'QUERY_TOO_DEEP' },
+              extensions: { reason: 'QUERY_TOO_DEEP' },
             }),
           );
         }
         if (fields > maxFields) {
           context.reportError(
             new GraphQLError(`Слишком большой запрос: ${fields} полей, допустимо ${maxFields}`, {
-              extensions: { code: 'QUERY_TOO_LARGE' },
+              extensions: { reason: 'QUERY_TOO_LARGE' },
             }),
           );
         }
