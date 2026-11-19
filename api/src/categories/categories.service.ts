@@ -96,7 +96,7 @@ export class CategoriesService {
     }
   }
 
-  // Удаления нет: категорию можно только отправить в архив, и только пустую
+  // Архив: категория пропадает из выбора, но остается в истории. Только пустую
   async archive(id: string, user: AuthUser): Promise<CategoryResponse> {
     const category = await this.categories.findById(id).lean();
     if (!category) {
@@ -134,6 +134,51 @@ export class CategoriesService {
         );
       }
       return toCategoryResponse(archived.toObject());
+    });
+  }
+
+  // Удаление разрешено только для категории, которая ни с чем не связана:
+  // в ней никогда не было курсов и нет вложенных категорий (даже архивных).
+  // Связанную категорию можно только архивировать - так сохраняется история
+  async remove(id: string, user: AuthUser): Promise<void> {
+    const category = await this.categories.findById(id).lean();
+    if (!category) {
+      throw notFound('Категория не найдена');
+    }
+    if (String(category.createdBy) !== user.id) {
+      throw forbidden('Удалить категорию может только ее автор');
+    }
+
+    await withTransaction(this.connection, async (session) => {
+      const hasChildren = await this.categories.exists({ parentId: id }).session(session);
+      if (hasChildren) {
+        throw conflict('CATEGORY_HAS_CHILDREN', 'В категории есть вложенные категории, удалить ее нельзя. Используйте архив');
+      }
+
+      // Условие по счетчикам в том же документе: параллельное создание курса
+      // меняет этот документ, и одна из транзакций будет повторена с новыми данными
+      const deleted = await this.categories.findOneAndDelete(
+        { _id: id, coursesCount: 0, childrenCount: 0 },
+        { session },
+      );
+
+      if (!deleted) {
+        const current = await this.categories.findById(id).session(session).lean();
+        if (!current) throw notFound('Категория не найдена');
+        if (current.coursesCount > 0) {
+          throw conflict('CATEGORY_IN_USE', 'К категории привязаны курсы, удалить ее нельзя. Используйте архив');
+        }
+        throw conflict('CATEGORY_HAS_CHILDREN', 'В категории есть вложенные категории, удалить ее нельзя. Используйте архив');
+      }
+
+      // Действующая подкатегория учитывалась в счетчике родителя
+      if (!deleted.archived && deleted.parentId) {
+        await this.categories.updateOne(
+          { _id: deleted.parentId, childrenCount: { $gt: 0 } },
+          { $inc: { childrenCount: -1 } },
+          { session },
+        );
+      }
     });
   }
 }

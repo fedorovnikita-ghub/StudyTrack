@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { API_URL } from '@/lib/config';
 
 type Status = 'checking' | 'up' | 'db-down' | 'down';
@@ -15,28 +15,33 @@ const LABELS: Record<Status, { text: string; badge: string }> = {
 // Проверка связи сайта с API: удобно сразу после запуска проекта
 export default function ApiStatus() {
   const [status, setStatus] = useState<Status>('checking');
-
-  const runCheck = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/v1/health`, {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) setStatus('up');
-      else if (res.status === 503) setStatus('db-down');
-      else setStatus('down');
-    } catch {
-      setStatus('down');
-    }
-  }, []);
+  const [attempt, setAttempt] = useState(0); // увеличение запускает повторную проверку
 
   useEffect(() => {
-    void runCheck();
-  }, [runCheck]);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    let cancelled = false; // эффект уже снят: результат этого запроса не нужен
+
+    // setState вызывается только в колбэках Promise, а не прямо в теле эффекта
+    fetch(`${API_URL}/api/v1/health`, { cache: 'no-store', signal: controller.signal })
+      .then((res) => {
+        if (!cancelled) setStatus(res.ok ? 'up' : res.status === 503 ? 'db-down' : 'down');
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('down');
+      })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [attempt]);
 
   function retry() {
     setStatus('checking');
-    void runCheck();
+    setAttempt((n) => n + 1);
   }
 
   const label = LABELS[status];

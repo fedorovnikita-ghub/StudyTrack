@@ -74,6 +74,12 @@ export default function CategoriesManager() {
     active.reload();
   }
 
+  async function remove(category: Category) {
+    await request(`/categories/${category.id}`, { method: 'DELETE' });
+    list.reload();
+    active.reload();
+  }
+
   const parentOptions = categoryOptions(active.data?.items ?? []).map((o) => ({ value: o.id, label: o.label }));
 
   return (
@@ -126,8 +132,8 @@ export default function CategoriesManager() {
           </label>
         </div>
         <p className="muted">
-          Категории не удаляются, а архивируются. Архивировать можно только свою категорию, в которой нет курсов и
-          действующих подкатегорий.
+          Свою категорию можно удалить, только если в ней никогда не было курсов и нет вложенных категорий. Иначе ее
+          можно отправить в архив: из выбора она пропадет, а история сохранится.
         </p>
         <QueryView query={list}>
           {(data) => {
@@ -157,13 +163,26 @@ export default function CategoriesManager() {
                           <td>{c.childrenCount}</td>
                           <td>{c.archived ? <span className="badge">В архиве</span> : 'Действует'}</td>
                           <td>
-                            {!c.archived && c.createdBy === user?.id && (
-                              <ConfirmAction
-                                buttonLabel="В архив"
-                                question={`Отправить категорию «${c.name}» в архив? Ее нельзя будет выбрать для новых курсов.`}
-                                confirmLabel="В архив"
-                                onConfirm={() => archive(c)}
-                              />
+                            {c.createdBy === user?.id && (
+                              <div className="actions">
+                                {!c.archived && (
+                                  <ConfirmAction
+                                    buttonLabel="В архив"
+                                    question={`Отправить категорию «${c.name}» в архив? Ее нельзя будет выбрать для новых курсов.`}
+                                    confirmLabel="В архив"
+                                    onConfirm={() => archive(c)}
+                                  />
+                                )}
+                                {c.coursesCount === 0 && c.childrenCount === 0 && (
+                                  <ConfirmAction
+                                    buttonLabel="Удалить"
+                                    question={`Удалить категорию «${c.name}» навсегда? Это действие нельзя отменить.`}
+                                    confirmLabel="Удалить"
+                                    danger
+                                    onConfirm={() => remove(c)}
+                                  />
+                                )}
+                              </div>
                             )}
                           </td>
                         </tr>

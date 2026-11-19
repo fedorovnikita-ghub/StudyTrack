@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
 import { AuthUser } from '../auth/auth.types';
 import { CurrentUser, Roles } from '../auth/decorators';
 import { ObjectIdPipe } from '../common/object-id.pipe';
@@ -30,5 +30,13 @@ export class CategoriesController {
   @HttpCode(200)
   archive(@Param('id', ObjectIdPipe) id: string, @CurrentUser() user: AuthUser) {
     return this.categoriesService.archive(id, user);
+  }
+
+  // DELETE /api/v1/categories/:id - удаление категории, которая ни с чем не связана
+  @Delete(':id')
+  @Roles('teacher')
+  @HttpCode(204)
+  async remove(@Param('id', ObjectIdPipe) id: string, @CurrentUser() user: AuthUser): Promise<void> {
+    await this.categoriesService.remove(id, user);
   }
 }
