@@ -28,8 +28,16 @@ export default function Profile() {
           <Link className="btn" href="/courses">
             Мои курсы
           </Link>
+          {user.role === 'student' && (
+            <Link className="btn" href="/results">
+              Мои результаты
+            </Link>
+          )}
           {user.role === 'teacher' && (
             <>
+              <Link className="btn" href="/grading">
+                Кабинет оценивания
+              </Link>
               <Link className="btn" href="/courses/new">
                 Создать курс
               </Link>

@@ -5,6 +5,8 @@ import QueryView from '@/components/ui/QueryView';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { SUBMISSION_STATUS_LABELS, SubmissionDetails } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
+import GradeForm from './GradeForm';
+import GradeHistory from './GradeHistory';
 
 export default function SubmissionView({ submissionId }: { submissionId: string }) {
   const submission = useApiQuery<SubmissionDetails>(`/submissions/${encodeURIComponent(submissionId)}`);
@@ -50,6 +52,10 @@ export default function SubmissionView({ submissionId }: { submissionId: string 
               {/* Текст студента выводится как обычный текст, без HTML */}
               <div className="submission-text pre-wrap">{data.text}</div>
             </section>
+            {data.isCourseOwner && (
+              <GradeForm submission={data} onGraded={submission.reload} onReload={submission.reload} />
+            )}
+            <GradeHistory grades={data.grades} maxScore={data.assignment.maxScore} />
           </>
         )}
       </QueryView>

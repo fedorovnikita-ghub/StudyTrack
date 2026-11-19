@@ -13,6 +13,8 @@ import {
   CurrentGrade,
   Enrollment,
   ENROLLMENT_MODEL,
+  Grade,
+  GRADE_MODEL,
   Submission,
   SUBMISSION_MODEL,
   SubmissionStatus,
@@ -24,6 +26,7 @@ import { SubmissionListQueryDto } from './dto/submission-list-query.dto';
 import { canSubmitVersion, isLateSubmission, nextVersionNumber, submissionTextLength } from './submission-rules';
 
 const PREVIEW_LENGTH = 200;
+const MAX_GRADE_HISTORY = 50;
 
 export interface SubmissionResponse {
   id: string;
@@ -39,14 +42,23 @@ export interface SubmissionResponse {
   version: number;
 }
 
+export interface GradeResponse {
+  id: string;
+  score: number;
+  comment: string;
+  gradedBy: { id: string; displayName: string };
+  gradedAt: string;
+}
+
 export interface SubmissionDetailsResponse extends SubmissionResponse {
   text: string;
+  grades: GradeResponse[]; // история оценок этой версии, новые сверху
   assignment: { id: string; title: string; maxScore: number; dueAt: string };
   course: { id: string; title: string };
   isCourseOwner: boolean;
 }
 
-interface SubmissionLike {
+export interface SubmissionLike {
   _id: unknown;
   assignmentId: unknown;
   courseId: unknown;
@@ -65,12 +77,40 @@ function preview(text: string): string {
   return clean.length > PREVIEW_LENGTH ? `${clean.slice(0, PREVIEW_LENGTH)}…` : clean;
 }
 
+export function toSubmissionResponse(
+  s: SubmissionLike,
+  studentName: string,
+  names: Map<string, string> | null,
+): SubmissionResponse {
+  const grade = s.currentGrade;
+  return {
+    id: String(s._id),
+    assignmentId: String(s.assignmentId),
+    courseId: String(s.courseId),
+    student: { id: String(s.studentId), displayName: studentName },
+    number: s.number,
+    textPreview: preview(s.text),
+    submittedAt: s.submittedAt.toISOString(),
+    isLate: s.isLate,
+    status: s.status,
+    currentGrade: grade
+      ? {
+          score: grade.score,
+          gradedAt: grade.gradedAt.toISOString(),
+          gradedBy: { id: String(grade.gradedBy), displayName: names?.get(String(grade.gradedBy)) ?? '' },
+        }
+      : null,
+    version: s.version,
+  };
+}
+
 @Injectable()
 export class SubmissionsService {
   constructor(
     @InjectModel(SUBMISSION_MODEL) private readonly submissions: Model<Submission>,
     @InjectModel(ENROLLMENT_MODEL) private readonly enrollments: Model<Enrollment>,
     @InjectModel(USER_MODEL) private readonly users: Model<User>,
+    @InjectModel(GRADE_MODEL) private readonly grades: Model<Grade>,
     @InjectConnection() private readonly connection: Connection,
     private readonly assignments: AssignmentsService,
     private readonly access: CourseAccessService,
@@ -142,7 +182,7 @@ export class SubmissionsService {
         return doc.toObject();
       });
 
-      return this.toResponse(created, user.displayName, null);
+      return toSubmissionResponse(created, user.displayName, null);
     } catch (err) {
       // Вторая линия защиты: уникальный индекс номера версии
       if (isDuplicateKeyError(err)) {
@@ -180,7 +220,7 @@ export class SubmissionsService {
     );
 
     return {
-      items: items.map((s) => this.toResponse(s, names.get(String(s.studentId)) ?? '', names)),
+      items: items.map((s) => toSubmissionResponse(s, names.get(String(s.studentId)) ?? '', names)),
       page: query.page,
       limit: query.limit,
       total,
@@ -199,10 +239,27 @@ export class SubmissionsService {
 
     const { assignment, course } = await this.assignments.getAccessible(String(submission.assignmentId), user);
 
-    const names = await loadNames(this.users, [submission.studentId, submission.currentGrade?.gradedBy], 'displayName');
+    const grades = await this.grades
+      .find({ submissionId: submission._id })
+      .sort({ gradedAt: -1, _id: -1 })
+      .limit(MAX_GRADE_HISTORY)
+      .lean();
+
+    const names = await loadNames(
+      this.users,
+      [submission.studentId, submission.currentGrade?.gradedBy, ...grades.map((g) => g.gradedBy)],
+      'displayName',
+    );
     return {
-      ...this.toResponse(submission, names.get(String(submission.studentId)) ?? '', names),
+      ...toSubmissionResponse(submission, names.get(String(submission.studentId)) ?? '', names),
       text: submission.text,
+      grades: grades.map((g) => ({
+        id: String(g._id),
+        score: g.score,
+        comment: g.comment,
+        gradedBy: { id: String(g.gradedBy), displayName: names.get(String(g.gradedBy)) ?? '' },
+        gradedAt: g.gradedAt.toISOString(),
+      })),
       assignment: {
         id: String(assignment._id),
         title: assignment.title,
@@ -211,29 +268,6 @@ export class SubmissionsService {
       },
       course: { id: String(course._id), title: course.title },
       isCourseOwner: String(course.teacherId) === user.id,
-    };
-  }
-
-  private toResponse(s: SubmissionLike, studentName: string, names: Map<string, string> | null): SubmissionResponse {
-    const grade = s.currentGrade;
-    return {
-      id: String(s._id),
-      assignmentId: String(s.assignmentId),
-      courseId: String(s.courseId),
-      student: { id: String(s.studentId), displayName: studentName },
-      number: s.number,
-      textPreview: preview(s.text),
-      submittedAt: s.submittedAt.toISOString(),
-      isLate: s.isLate,
-      status: s.status,
-      currentGrade: grade
-        ? {
-            score: grade.score,
-            gradedAt: grade.gradedAt.toISOString(),
-            gradedBy: { id: String(grade.gradedBy), displayName: names?.get(String(grade.gradedBy)) ?? '' },
-          }
-        : null,
-      version: s.version,
     };
   }
 }

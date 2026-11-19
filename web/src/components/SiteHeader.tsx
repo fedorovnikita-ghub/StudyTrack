@@ -25,7 +25,9 @@ export default function SiteHeader() {
           {user ? (
             <>
               <Link href="/courses">Мои курсы</Link>
+              {user.role === 'teacher' && <Link href="/grading">Оценивание</Link>}
               {user.role === 'teacher' && <Link href="/categories">Категории</Link>}
+              {user.role === 'student' && <Link href="/results">Мои результаты</Link>}
               <Link href="/me">Личный кабинет</Link>
               <span className="nav-user muted">
                 {user.displayName} · {ROLE_LABELS[user.role]}

@@ -579,3 +579,14 @@ main {
   max-height: 70vh;
   overflow: auto;
 }
+
+.field-label {
+  font-weight: 500;
+}
+
+.table tfoot th,
+.table tfoot td {
+  border-bottom: 0;
+  border-top: 2px solid var(--border);
+  color: var(--text);
+}

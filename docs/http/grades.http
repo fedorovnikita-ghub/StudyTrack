@@ -1,0 +1,55 @@
+### Оценивание и результаты
+@api = http://localhost:4000/api/v1
+# Подставьте id версии работы и ее текущий version (из GET /submissions/:id)
+@submissionId = 000000000000000000000000
+@version = 1
+
+### Вход преподавателя
+# @name teacher
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "teacher@studytrack.local", "password": "teacher-password-1" }
+
+### Вход студента
+# @name student
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "student.test@example.com", "password": "student-password-1" }
+
+### Кабинет оценивания: ожидающие оценки
+GET {{api}}/grading/queue?status=submitted
+Authorization: Bearer {{teacher.response.body.token}}
+
+### Оценить версию
+POST {{api}}/submissions/{{submissionId}}/grade
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "score": 85, "comment": "Хорошо, но не хватает кодов ошибок", "version": {{version}} }
+
+### Повтор с той же version - ожидаем 409 VERSION_CONFLICT, вторая оценка не записывается
+POST {{api}}/submissions/{{submissionId}}/grade
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "score": 90, "version": {{version}} }
+
+### Балл больше максимального - ожидаем 400 с ошибкой поля score
+POST {{api}}/submissions/{{submissionId}}/grade
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "score": 100000, "version": {{version}} }
+
+### Студент не может оценивать - ожидаем 403
+POST {{api}}/submissions/{{submissionId}}/grade
+Authorization: Bearer {{student.response.body.token}}
+Content-Type: application/json
+
+{ "score": 100, "version": {{version}} }
+
+### Мои результаты (студент)
+GET {{api}}/results/my
+Authorization: Bearer {{student.response.body.token}}

@@ -11,6 +11,7 @@ export const LIMITS = {
   maxScore: { min: 1, max: 1000 },
   maxVersions: { min: 1, max: 50, default: 20 },
   minTextLength: { min: 1, max: 5000, default: 1 },
+  gradeComment: { max: 2000 },
   reason: { min: 3, max: 500 },
   search: { max: 100 },
   pageLimit: 20,

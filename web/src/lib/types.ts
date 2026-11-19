@@ -111,8 +111,17 @@ export interface Submission {
   version: number;
 }
 
+export interface GradeEntry {
+  id: string;
+  score: number;
+  comment: string;
+  gradedBy: { id: string; displayName: string };
+  gradedAt: string;
+}
+
 export interface SubmissionDetails extends Submission {
   text: string;
+  grades: GradeEntry[];
   assignment: { id: string; title: string; maxScore: number; dueAt: string };
   course: { id: string; title: string };
   isCourseOwner: boolean;
@@ -122,3 +131,27 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   submitted: 'Ожидает оценки',
   graded: 'Оценена',
 };
+
+export interface QueueItem extends Submission {
+  assignment: { id: string; title: string; maxScore: number };
+  course: { id: string; title: string };
+}
+
+export interface AssignmentResult {
+  assignment: { id: string; title: string; maxScore: number; dueAt: string; isOverdue: boolean };
+  versionsCount: number;
+  lastSubmittedAt: string | null;
+  hasLate: boolean;
+  currentScore: number | null;
+  gradedVersion: number | null;
+}
+
+export interface CourseResult {
+  course: { id: string; title: string };
+  assignments: AssignmentResult[];
+  totalScore: number;
+  maxTotal: number;
+  gradedCount: number;
+  assignmentsCount: number;
+  percent: number | null;
+}
