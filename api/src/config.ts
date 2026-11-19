@@ -13,6 +13,14 @@ function required(name: string): string {
   return value;
 }
 
+function secret(name: string, minLength: number): string {
+  const value = required(name);
+  if (value.length < minLength) {
+    throw new Error(`Переменная ${name} должна быть не короче ${minLength} символов`);
+  }
+  return value;
+}
+
 function positiveInt(name: string, fallback: number): number {
   const raw = process.env[name]?.trim();
   if (!raw) return fallback;
@@ -35,4 +43,6 @@ export const config = {
   port: positiveInt('PORT', 4000),
   mongodbUri: required('MONGODB_URI'),
   webOrigins: list('WEB_ORIGIN', 'http://localhost:3000'),
+  jwtSecret: secret('JWT_SECRET', 32),
+  jwtExpiresInSec: 60 * 60, // токен живет 60 минут, как в ТЗ
 };

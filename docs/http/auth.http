@@ -1,0 +1,43 @@
+### Примеры запросов для расширения REST Client (VS Code) или HTTP-клиента JetBrains
+@api = http://localhost:4000/api/v1
+
+### Регистрация (всегда создает студента)
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "displayName": "Тестовый Студент",
+  "email": "student.test@example.com",
+  "password": "student-password-1"
+}
+
+### Регистрация с полем role - ожидаем 400 "Неизвестное поле"
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "displayName": "Хитрый Студент",
+  "email": "hacker@example.com",
+  "password": "student-password-1",
+  "role": "teacher"
+}
+
+### Вход
+# @name login
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "student.test@example.com",
+  "password": "student-password-1"
+}
+
+### Текущий пользователь (токен берется из ответа на вход)
+GET {{api}}/auth/me
+Authorization: Bearer {{login.response.body.token}}
+
+### Без токена - ожидаем 401
+GET {{api}}/auth/me
+
+### Выход - 204
+POST {{api}}/auth/logout

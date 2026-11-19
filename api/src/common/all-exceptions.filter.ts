@@ -2,6 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@n
 import type { Request, Response } from 'express';
 import { Error as MongooseError } from 'mongoose';
 import { AppError, ErrorBody, FieldErrors } from './app-error';
+import { isDuplicateKeyError } from './mongo-errors';
 
 // Безопасные сообщения для стандартных HTTP-ошибок Nest
 const STANDARD_ERRORS: Record<number, { code: string; message: string }> = {
@@ -32,10 +33,6 @@ interface HttpErrorResult {
 
 function makeBody(code: string, message: string, fields?: FieldErrors): ErrorBody {
   return fields ? { error: { code, message, fields } } : { error: { code, message } };
-}
-
-function isDuplicateKeyError(exception: unknown): boolean {
-  return typeof exception === 'object' && exception !== null && (exception as { code?: unknown }).code === 11000;
 }
 
 function isDbUnavailable(exception: unknown): boolean {

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import SiteHeader from '@/components/SiteHeader';
+import { AuthProvider } from '@/lib/auth-context';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -7,18 +8,15 @@ export const metadata: Metadata = {
   description: 'Курсы, задания, сдача работ и оценки',
 };
 
+// Server Component: общий каркас страницы. Интерактивные части (шапка, формы) - клиентские
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
       <body>
-        <header className="site-header">
-          <div className="container site-header__inner">
-            <Link href="/" className="logo">
-              StudyTrack
-            </Link>
-          </div>
-        </header>
-        <main className="container">{children}</main>
+        <AuthProvider>
+          <SiteHeader />
+          <main className="container">{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

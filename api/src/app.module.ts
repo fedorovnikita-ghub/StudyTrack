@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuthModule } from './auth/auth.module';
 import { config } from './config';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
@@ -11,6 +12,7 @@ import { HealthController } from './health/health.controller';
       maxPoolSize: 20,
     }),
     DatabaseModule,
+    AuthModule,
   ],
   controllers: [HealthController],
 })
