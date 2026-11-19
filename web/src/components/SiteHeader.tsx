@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ROLE_LABELS } from '@/lib/types';
+import RealtimeIndicator from './RealtimeIndicator';
 
 // Навигация зависит от роли
 export default function SiteHeader() {
@@ -29,6 +30,7 @@ export default function SiteHeader() {
               {user.role === 'teacher' && <Link href="/categories">Категории</Link>}
               {user.role === 'student' && <Link href="/results">Мои результаты</Link>}
               <Link href="/me">Личный кабинет</Link>
+              <RealtimeIndicator />
               <span className="nav-user muted">
                 {user.displayName} · {ROLE_LABELS[user.role]}
               </span>

@@ -7,6 +7,7 @@ import { Session, User } from './types';
 // Токен живет только в памяти вкладки (по ТЗ). После обновления страницы нужно войти снова
 interface AuthContextValue {
   user: User | null;
+  token: string | null; // нужен Socket.IO-клиенту
   notice: string | null;
   login: (email: string, password: string) => Promise<User>;
   register: (displayName: string, email: string, password: string) => Promise<User>;
@@ -90,7 +91,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user: session?.user ?? null, notice, login, register, logout, clearNotice, request }),
+    () => ({
+      user: session?.user ?? null,
+      token: session?.token ?? null,
+      notice,
+      login,
+      register,
+      logout,
+      clearNotice,
+      request,
+    }),
     [session, notice, login, register, logout, clearNotice, request],
   );
 

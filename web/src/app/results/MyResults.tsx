@@ -6,6 +6,7 @@ import Pagination from '@/components/ui/Pagination';
 import QueryView from '@/components/ui/QueryView';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { buildQuery } from '@/lib/query-string';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { AssignmentResult, CourseResult, Page } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
 
@@ -24,7 +25,8 @@ function statusText(r: AssignmentResult): { text: string; badge: string } {
 // Личные результаты: текущий балл = оценка последней оцененной версии
 export default function MyResults() {
   const [page, setPage] = useState(1);
-  const results = useApiQuery<Page<CourseResult>>(`/results/my${buildQuery({ page, limit: COURSES_PER_PAGE })}`);
+  const live = useRealtimeRefresh({ types: ['grade.changed', 'submission.created'] });
+  const results = useApiQuery<Page<CourseResult>>(`/results/my${buildQuery({ page, limit: COURSES_PER_PAGE })}`, live);
 
   return (
     <div className="stack">

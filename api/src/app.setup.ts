@@ -1,4 +1,5 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { json } from 'express';
 import { AllExceptionsFilter } from './common/all-exceptions.filter';
 import { bodyParserErrorHandler } from './common/body-parser-error';
@@ -16,4 +17,7 @@ export function configureApp(app: NestExpressApplication): void {
   app.enableCors({ origin: config.webOrigins });
   app.useGlobalPipes(createValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Socket.IO работает на том же HTTP-сервере, что и REST
+  app.useWebSocketAdapter(new IoAdapter(app));
 }

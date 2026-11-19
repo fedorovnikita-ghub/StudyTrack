@@ -4,12 +4,14 @@ import Link from 'next/link';
 import QueryView from '@/components/ui/QueryView';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { SUBMISSION_STATUS_LABELS, SubmissionDetails } from '@/lib/types';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { useApiQuery } from '@/lib/use-api-query';
 import GradeForm from './GradeForm';
 import GradeHistory from './GradeHistory';
 
 export default function SubmissionView({ submissionId }: { submissionId: string }) {
-  const submission = useApiQuery<SubmissionDetails>(`/submissions/${encodeURIComponent(submissionId)}`);
+  const live = useRealtimeRefresh({ types: ['grade.changed'], submissionId });
+  const submission = useApiQuery<SubmissionDetails>(`/submissions/${encodeURIComponent(submissionId)}`, live);
 
   return (
     <div className="stack">

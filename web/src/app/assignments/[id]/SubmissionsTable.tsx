@@ -8,6 +8,7 @@ import SelectField from '@/components/ui/SelectField';
 import { formatDateTime } from '@/lib/format';
 import { LIMITS } from '@/lib/limits';
 import { buildQuery } from '@/lib/query-string';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { Page, Submission, SUBMISSION_STATUS_LABELS } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
 
@@ -16,8 +17,10 @@ export default function SubmissionsTable({ assignmentId, maxScore }: { assignmen
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
 
+  const live = useRealtimeRefresh({ types: ['submission.created', 'grade.changed'], assignmentId });
   const submissions = useApiQuery<Page<Submission>>(
     `/assignments/${assignmentId}/submissions${buildQuery({ page, limit: LIMITS.pageLimit, status })}`,
+    live,
   );
 
   return (

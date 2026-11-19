@@ -7,16 +7,18 @@ import QueryView from '@/components/ui/QueryView';
 import { formatDateTime } from '@/lib/format';
 import { LIMITS } from '@/lib/limits';
 import { buildQuery } from '@/lib/query-string';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { Page, Submission, SUBMISSION_STATUS_LABELS } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
 
 // История версий студента: от новой к старой
 export default function MyVersions({ assignmentId, refreshKey }: { assignmentId: string; refreshKey: number }) {
   const [page, setPage] = useState(1);
-  // refreshKey меняется после новой сдачи - список перечитывается с сервера
+  // Список перечитывается после сдачи в этом окне (refreshKey) и по событиям из других окон
+  const live = useRealtimeRefresh({ types: ['submission.created', 'grade.changed'], assignmentId });
   const versions = useApiQuery<Page<Submission>>(
     `/assignments/${assignmentId}/submissions${buildQuery({ page, limit: LIMITS.pageLimit })}`,
-    refreshKey,
+    refreshKey + live,
   );
 
   return (

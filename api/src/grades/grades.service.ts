@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, FilterQuery, Model, Types } from 'mongoose';
 import { AssignmentsService } from '../assignments/assignments.service';
@@ -6,6 +6,7 @@ import { AuthUser } from '../auth/auth.types';
 import { AppError, conflict, notFound } from '../common/app-error';
 import { loadNames } from '../common/names';
 import { Page, PageQueryDto, skipOf } from '../common/pagination';
+import { CourseAccessService } from '../courses/course-access.service';
 import { withTransaction } from '../database/transaction';
 import {
   Assignment,
@@ -21,6 +22,7 @@ import {
   User,
   USER_MODEL,
 } from '../models';
+import { RealtimeService } from '../realtime/realtime.service';
 import { SubmissionResponse, toSubmissionResponse } from '../submissions/submissions.service';
 import { GradeSubmissionDto } from './dto/grade-submission.dto';
 import { GradingQueueQueryDto } from './dto/grading-queue-query.dto';
@@ -56,6 +58,8 @@ const MAX_ASSIGNMENTS_PER_PAGE = 2000;
 
 @Injectable()
 export class GradesService {
+  private readonly logger = new Logger('Grades');
+
   constructor(
     @InjectModel(SUBMISSION_MODEL) private readonly submissions: Model<Submission>,
     @InjectModel(GRADE_MODEL) private readonly grades: Model<Grade>,
@@ -65,6 +69,8 @@ export class GradesService {
     @InjectModel(USER_MODEL) private readonly users: Model<User>,
     @InjectConnection() private readonly connection: Connection,
     private readonly assignmentsService: AssignmentsService,
+    private readonly access: CourseAccessService,
+    private readonly realtime: RealtimeService,
   ) {}
 
   // Оценка конкретной версии. Оценка и ее дата записываются в одной транзакции:
@@ -122,8 +128,36 @@ export class GradesService {
       return doc.toObject();
     });
 
+    void this.notifyGradeChanged(updated, user.id);
+
     const names = await loadNames(this.users, [updated.studentId, user.id], 'displayName');
     return toSubmissionResponse(updated, names.get(String(updated.studentId)) ?? '', names);
+  }
+
+  // grade.changed - только владельцу работы (если он все еще зачислен) и преподавателю
+  private async notifyGradeChanged(
+    s: { _id: unknown; assignmentId: unknown; courseId: unknown; studentId: unknown },
+    teacherId: string,
+  ): Promise<void> {
+    try {
+      const studentId = String(s.studentId);
+      const recipients = [teacherId];
+      if (await this.access.isEnrolled(String(s.courseId), studentId)) {
+        recipients.push(studentId);
+      }
+      await this.realtime.notify(
+        {
+          type: 'grade.changed',
+          submissionId: String(s._id),
+          assignmentId: String(s.assignmentId),
+          courseId: String(s.courseId),
+          studentId,
+        },
+        recipients,
+      );
+    } catch (err) {
+      this.logger.warn(`Событие grade.changed не отправлено: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 
   // Кабинет оценивания: работы во всех курсах преподавателя, старые сверху

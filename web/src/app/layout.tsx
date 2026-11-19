@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
 import { AuthProvider } from '@/lib/auth-context';
+import { RealtimeProvider } from '@/lib/realtime';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,8 +15,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body>
         <AuthProvider>
-          <SiteHeader />
-          <main className="container">{children}</main>
+          <RealtimeProvider>
+            <SiteHeader />
+            <main className="container">{children}</main>
+          </RealtimeProvider>
         </AuthProvider>
       </body>
     </html>

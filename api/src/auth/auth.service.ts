@@ -82,6 +82,12 @@ export class AuthService {
     };
   }
 
+  // Когда истекает токен (уже проверенный verifyToken). Нужно, чтобы закрыть Socket вовремя
+  tokenExpiresAt(token: string): Date | null {
+    const payload = this.jwt.decode<{ exp?: number } | null>(token);
+    return payload?.exp ? new Date(payload.exp * 1000) : null;
+  }
+
   private async createSession(user: UserDocument): Promise<SessionResponse> {
     const token = await this.jwt.signAsync({ sub: user.id, role: user.role });
     const expiresAt = new Date(Date.now() + config.jwtExpiresInSec * 1000);

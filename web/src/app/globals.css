@@ -590,3 +590,32 @@ main {
   border-top: 2px solid var(--border);
   color: var(--text);
 }
+
+/* ---------- Индикатор реального времени ---------- */
+.rt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: var(--muted);
+}
+
+.rt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rt-ok {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.rt-bad {
+  background: var(--danger-bg);
+  color: var(--danger);
+}

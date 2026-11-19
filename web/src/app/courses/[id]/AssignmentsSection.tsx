@@ -7,6 +7,7 @@ import QueryView from '@/components/ui/QueryView';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { LIMITS } from '@/lib/limits';
 import { buildQuery } from '@/lib/query-string';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { Assignment, Page } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
 
@@ -21,8 +22,10 @@ export default function AssignmentsSection({ courseId, isOwner, courseActive }: 
   const [searchDraft, setSearchDraft] = useState('');
   const [search, setSearch] = useState('');
 
+  const live = useRealtimeRefresh({ types: ['submission.created'], courseId });
   const assignments = useApiQuery<Page<Assignment>>(
     `/courses/${courseId}/assignments${buildQuery({ page, limit: LIMITS.pageLimit, search })}`,
+    live,
   );
 
   function handleSearch(e: FormEvent) {

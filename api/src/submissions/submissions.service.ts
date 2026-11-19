@@ -9,6 +9,7 @@ import { loadNames } from '../common/names';
 import { Page, skipOf } from '../common/pagination';
 import { CourseAccessService } from '../courses/course-access.service';
 import { withTransaction } from '../database/transaction';
+import { RealtimeService } from '../realtime/realtime.service';
 import {
   CurrentGrade,
   Enrollment,
@@ -114,6 +115,7 @@ export class SubmissionsService {
     @InjectConnection() private readonly connection: Connection,
     private readonly assignments: AssignmentsService,
     private readonly access: CourseAccessService,
+    private readonly realtime: RealtimeService,
   ) {}
 
   // Ключевая операция: сдача новой версии работы.
@@ -181,6 +183,18 @@ export class SubmissionsService {
         );
         return doc.toObject();
       });
+
+      // Событие - только после успешной транзакции: автору и преподавателю курса
+      void this.realtime.notify(
+        {
+          type: 'submission.created',
+          submissionId: String(created._id),
+          assignmentId: String(created.assignmentId),
+          courseId: String(created.courseId),
+          studentId: user.id,
+        },
+        [user.id, String(course.teacherId)],
+      );
 
       return toSubmissionResponse(created, user.displayName, null);
     } catch (err) {

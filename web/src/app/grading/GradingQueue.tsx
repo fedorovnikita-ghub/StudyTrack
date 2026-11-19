@@ -8,6 +8,7 @@ import SelectField from '@/components/ui/SelectField';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { LIMITS } from '@/lib/limits';
 import { buildQuery } from '@/lib/query-string';
+import { useRealtimeRefresh } from '@/lib/realtime';
 import { Course, Page, QueueItem, SubmissionStatus } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
 
@@ -18,8 +19,11 @@ export default function GradingQueue() {
   const [page, setPage] = useState(1);
 
   const courses = useApiQuery<Page<Course>>('/courses?limit=100');
+  // Новая сдача или оценка в другом окне - очередь перечитывается сама
+  const live = useRealtimeRefresh({ types: ['submission.created', 'grade.changed'] });
   const queue = useApiQuery<Page<QueueItem>>(
     `/grading/queue${buildQuery({ status, courseId, page, limit: LIMITS.pageLimit })}`,
+    live,
   );
 
   return (
