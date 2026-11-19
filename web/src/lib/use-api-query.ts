@@ -24,12 +24,13 @@ export interface ApiQuery<T> {
 
 // Загрузка данных с API со всеми состояниями: loading / success / error / forbidden / not-found.
 // При повторной загрузке того же адреса прежние данные остаются на экране,
-// чтобы формы на странице не сбрасывались
-export function useApiQuery<T>(path: string | null): ApiQuery<T> {
+// чтобы формы на странице не сбрасывались.
+// refreshKey: при его изменении данные перечитываются (например, после действия в соседнем компоненте)
+export function useApiQuery<T>(path: string | null, refreshKey: number = 0): ApiQuery<T> {
   const { request } = useAuth();
   const [reloadCount, setReloadCount] = useState(0);
   const [result, setResult] = useState<QueryResult<T> | null>(null);
-  const key = `${path}#${reloadCount}`;
+  const key = `${path}#${reloadCount}#${refreshKey}`;
 
   useEffect(() => {
     if (!path) return;

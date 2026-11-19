@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AssignmentsModule } from './assignments/assignments.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { config } from './config';
 import { CoursesModule } from './courses/courses.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthController } from './health/health.controller';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { HealthController } from './health/health.controller';
     AuthModule,
     CategoriesModule,
     CoursesModule,
+    AssignmentsModule,
+    SubmissionsModule,
   ],
   controllers: [HealthController],
 })

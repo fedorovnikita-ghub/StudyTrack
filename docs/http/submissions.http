@@ -1,0 +1,68 @@
+### Задания и сдача версий работ
+@api = http://localhost:4000/api/v1
+# Подставьте id своего курса
+@courseId = 000000000000000000000000
+
+### Вход преподавателя
+# @name teacher
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "teacher@studytrack.local", "password": "teacher-password-1" }
+
+### Вход студента (должен быть зачислен на курс)
+# @name student
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "student.test@example.com", "password": "student-password-1" }
+
+### Создать задание
+# @name assignment
+POST {{api}}/courses/{{courseId}}/assignments
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{
+  "title": "Лабораторная 1: REST API",
+  "text": "Опишите три маршрута вашего API и коды ответов.",
+  "dueAt": "2030-12-01T23:59:00+05:00",
+  "maxScore": 100,
+  "settings": { "maxVersions": 5, "minTextLength": 10 }
+}
+
+### Срок без часового пояса - ожидаем 400 с ошибкой поля dueAt
+POST {{api}}/courses/{{courseId}}/assignments
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "title": "Плохой срок", "text": "Текст", "dueAt": "2030-12-01T23:59:00", "maxScore": 10 }
+
+### Студент сдает версию работы
+POST {{api}}/assignments/{{assignment.response.body.id}}/submissions
+Authorization: Bearer {{student.response.body.token}}
+Content-Type: application/json
+
+{ "text": "Маршруты: GET /courses, POST /courses, GET /courses/:id" }
+
+### Попытка передать номер версии - ожидаем 400 "Неизвестное поле"
+POST {{api}}/assignments/{{assignment.response.body.id}}/submissions
+Authorization: Bearer {{student.response.body.token}}
+Content-Type: application/json
+
+{ "text": "Текст работы достаточной длины", "number": 1 }
+
+### Преподаватель не может сдавать работы - ожидаем 403
+POST {{api}}/assignments/{{assignment.response.body.id}}/submissions
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "text": "Текст работы достаточной длины" }
+
+### История версий студента
+GET {{api}}/assignments/{{assignment.response.body.id}}/submissions
+Authorization: Bearer {{student.response.body.token}}
+
+### Все работы задания (преподаватель)
+GET {{api}}/assignments/{{assignment.response.body.id}}/submissions?status=submitted
+Authorization: Bearer {{teacher.response.body.token}}

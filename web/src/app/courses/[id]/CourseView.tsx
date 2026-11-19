@@ -5,6 +5,7 @@ import QueryView from '@/components/ui/QueryView';
 import { formatDateTime, TIME_ZONE_LABEL } from '@/lib/format';
 import { COURSE_STATUS_LABELS, CourseDetails } from '@/lib/types';
 import { useApiQuery } from '@/lib/use-api-query';
+import AssignmentsSection from './AssignmentsSection';
 import EditCourseForm from './EditCourseForm';
 import EnrollmentsPanel from './EnrollmentsPanel';
 
@@ -46,6 +47,7 @@ export default function CourseView({ courseId }: { courseId: string }) {
               {data.description ? <p className="pre-wrap">{data.description}</p> : <p className="muted">Описания нет.</p>}
             </section>
 
+            <AssignmentsSection courseId={data.id} isOwner={data.isOwner} courseActive={data.status === 'active'} />
             {data.isOwner && <EditCourseForm course={data} onSaved={course.reload} onReload={course.reload} />}
             {data.isOwner && <EnrollmentsPanel courseId={data.id} onChanged={course.reload} />}
           </>

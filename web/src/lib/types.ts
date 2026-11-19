@@ -70,3 +70,55 @@ export const COURSE_STATUS_LABELS: Record<CourseStatus, string> = {
   active: 'Активный',
   archived: 'В архиве',
 };
+
+export interface AssignmentSettings {
+  maxVersions: number;
+  minTextLength: number;
+}
+
+export interface Assignment {
+  id: string;
+  courseId: string;
+  title: string;
+  text: string;
+  dueAt: string;
+  maxScore: number;
+  settings: AssignmentSettings;
+  status: 'published' | 'archived';
+  isOverdue: boolean;
+  createdAt: string;
+  my?: { submissionsCount: number; lastSubmittedAt: string | null };
+}
+
+export interface AssignmentDetails extends Assignment {
+  course: { id: string; title: string };
+  isOwner: boolean;
+}
+
+export type SubmissionStatus = 'submitted' | 'graded';
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  courseId: string;
+  student: { id: string; displayName: string };
+  number: number;
+  textPreview: string;
+  submittedAt: string;
+  isLate: boolean;
+  status: SubmissionStatus;
+  currentGrade: { score: number; gradedAt: string; gradedBy: { id: string; displayName: string } } | null;
+  version: number;
+}
+
+export interface SubmissionDetails extends Submission {
+  text: string;
+  assignment: { id: string; title: string; maxScore: number; dueAt: string };
+  course: { id: string; title: string };
+  isCourseOwner: boolean;
+}
+
+export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  submitted: 'Ожидает оценки',
+  graded: 'Оценена',
+};
