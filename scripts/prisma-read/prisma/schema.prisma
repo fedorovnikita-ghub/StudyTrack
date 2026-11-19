@@ -1,0 +1,30 @@
+// Prisma 6.x: последняя линия Prisma ORM с поддержкой MongoDB (в Prisma 7 MongoDB пока нет).
+// Описана ОДНА небольшая коллекция - categories - только для чтения.
+// ВАЖНО: не запускать `prisma db push` - он изменил бы рабочую базу (создал бы коллекции и индексы).
+// Нужна только команда `prisma generate`, которая создает клиент локально.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model Category {
+  // _id документа -> поле id. @db.ObjectId: в базе это ObjectId, в коде - строка (24 hex)
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  // Ссылка на родителя тоже ObjectId. null - верхний уровень
+  parentId      String?  @db.ObjectId
+  archived      Boolean  @default(false)
+  coursesCount  Int      @default(0)
+  childrenCount Int      @default(0)
+  createdBy     String   @db.ObjectId
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  // Реальное имя коллекции в MongoDB (Mongoose создал ее под именем categories)
+  @@map("categories")
+}

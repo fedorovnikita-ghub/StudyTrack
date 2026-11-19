@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { unauthorized } from '../common/app-error';
+import { getRequest } from '../common/request-context';
 import { AuthService } from './auth.service';
-import { AuthUser } from './auth.types';
 import { IS_PUBLIC_KEY } from './decorators';
 
 // Глобальный guard: каждый маршрут требует вход, если он не помечен @Public()
@@ -20,7 +20,7 @@ export class JwtAuthGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    const req = context.switchToHttp().getRequest<{ headers: { authorization?: string }; user?: AuthUser }>();
+    const req = getRequest(context);
     const token = extractBearerToken(req.headers.authorization);
     if (!token) {
       throw unauthorized();

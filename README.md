@@ -17,10 +17,11 @@
 
 ```
 StudyTrack/
-├── api/              основной API: NestJS 11 (Express-адаптер), Mongoose, REST
+├── api/              основной API: NestJS 11 (Express-адаптер), Mongoose, REST, GraphQL, Socket.IO
 ├── web/              сайт: Next.js 16, React 19, TypeScript
 ├── report-service/   отдельный сервис отчетов на Express
-└── scripts/          изолированный пример Prisma (будет добавлен)
+└── scripts/
+    └── prisma-read/  изолированный пример чтения через Prisma 6 и сравнение с Mongoose
 ```
 
 ## Версии
@@ -33,6 +34,9 @@ StudyTrack/
 | Next.js | 16 |
 | React | 19 |
 | Mongoose | 8 |
+| GraphQL | @nestjs/graphql 13, Apollo Server 5, graphql 16 |
+| Socket.IO | 4 |
+| Prisma (пример) | 6.19 (последняя линия с поддержкой MongoDB) |
 | TypeScript | 5.9 |
 | MongoDB | Atlas (replica set, поддерживает транзакции) |
 
@@ -179,6 +183,7 @@ npm run test:integration  # только HTTP с тестовой MongoDB
 | `test/unit/csv-and-dates.spec.ts` | unit, 4 | нейтрализация формул, экранирование CSV, период до 90 дней, границы дня по Алматы | нет |
 | `test/integration/reports.spec.ts` | HTTP + MongoDB, 4 | отчет курса и права, report-service работает / остановлен (503 только для отчета), CSV с экранированием и проверками до заголовков | заглушка report-service: проверяет контракт со стороны API, но не сам сервис |
 | `report-service/test/*.test.js` | node:test, 8 | сводка на ручном примере, проверка ключа, типов, конечности чисел, предела массива, битого JSON | нет: настоящее Express-приложение |
+| `test/integration/graphql.spec.ts` | GraphQL + MongoDB, 3 | `myCourses` и `assignment` с теми же правами, что REST: свои версии студенту, все — преподавателю, NOT_FOUND постороннему, UNAUTHORIZED без входа. Ограничения `limit`, числа полей и вложенности | нет |
 | `test/integration/concurrency.spec.ts` | HTTP + MongoDB, 3 | 5 одновременных сдач → номера 1..5, две одновременные оценки → одна запись, два зачисления → одно действующее | нет |
 
 Интеграционные тесты поднимают настоящий `AppModule` с той же настройкой, что в `main.ts` (`src/app.setup.ts`), и проверяют итоговые документы в базе, а не только HTTP-коды. Преподаватель в тестах создается прямо в базе: через сайт эту роль получить нельзя.
@@ -255,6 +260,21 @@ npm start
 - Отчисленный студент теряет доступ к курсу, заданиям и своим работам сразу. Его записи сохраняются.
 - Неверный формат id в адресе дает `400 INVALID_ID`. Корректный, но несуществующий или чужой id дает `404`.
 
+## GraphQL
+
+`POST /graphql` (без префикса `/api/v1`) с тем же JWT. Две Query: `myCourses(page, limit)` и `assignment(id)` с полем `submissions`. Подробно — в [docs/graphql.md](docs/graphql.md), примеры — в [docs/http/graphql.http](docs/http/graphql.http). Страница сайта на GraphQL — «Обзор курсов» (`/overview`).
+
+## Пример Prisma
+
+```bash
+cd scripts/prisma-read
+npm install
+copy .env.example .env   # MONGODB_URI из api/.env
+npm start
+```
+
+Только чтение коллекции `categories` через Prisma и Mongoose со сравнением результата. Подробности и сопоставление — в [scripts/prisma-read/README.md](scripts/prisma-read/README.md).
+
 ## Реальное время (Socket.IO)
 
 Socket.IO работает на том же порту, что и API. Клиент передает JWT в `handshake.auth.token`. Сервер проверяет его так же, как для REST, и сам кладет сокет в личную комнату `user:<id>`. Клиент не выбирает подписки, поэтому получить чужие события нельзя.
@@ -282,6 +302,8 @@ Socket.IO работает на том же порту, что и API. Клие�
 - [Чек-лист запуска и приемки](docs/checklist.md)
 - [Модель данных, индексы и согласованность](docs/data-model.md)
 - [Отчеты, CSV и report-service: формулы, ручной расчет, контракт](docs/reports.md)
+- [GraphQL: схема, примеры двух Query, ограничения, отличие от REST](docs/graphql.md) и сама схема [api/schema.gql](api/schema.gql)
+- [Пример Prisma и сравнение с Mongoose](scripts/prisma-read/README.md)
 
 ## Формат ошибок API
 

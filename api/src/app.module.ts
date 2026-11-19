@@ -6,6 +6,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { config } from './config';
 import { CoursesModule } from './courses/courses.module';
 import { DatabaseModule } from './database/database.module';
+import { GqlModule } from './gql/gql.module';
 import { GradesModule } from './grades/grades.module';
 import { HealthController } from './health/health.controller';
 import { ReportsModule } from './reports/reports.module';
@@ -25,6 +26,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
     SubmissionsModule,
     GradesModule,
     ReportsModule,
+    GqlModule,
   ],
   controllers: [HealthController],
 })

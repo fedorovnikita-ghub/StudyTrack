@@ -1,5 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
+import { GqlContextType } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
+import { GraphQLError } from 'graphql';
 import { Error as MongooseError } from 'mongoose';
 import { AppError, ErrorBody, FieldErrors } from './app-error';
 import { isDuplicateKeyError } from './mongo-errors';
@@ -46,7 +48,15 @@ function isDbUnavailable(exception: unknown): boolean {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger('Errors');
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): GraphQLError | void {
+    // GraphQL: тот же перевод ошибок, но ответ формирует Apollo (код и поля - в extensions)
+    if (host.getType<GqlContextType>() === 'graphql') {
+      const { status, body } = this.toHttpError(exception, null);
+      return new GraphQLError(body.error.message, {
+        extensions: { code: body.error.code, status, ...(body.error.fields ? { fields: body.error.fields } : {}) },
+      });
+    }
+
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
     const req = ctx.getRequest<Request>();
@@ -62,7 +72,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     res.status(status).json(body);
   }
 
-  private toHttpError(exception: unknown, req: Request): HttpErrorResult {
+  private toHttpError(exception: unknown, req: Request | null): HttpErrorResult {
+    const where = req ? `${req.method} ${req.originalUrl}` : 'GraphQL';
     if (exception instanceof AppError) {
       return { status: exception.getStatus(), body: exception.getResponse() as ErrorBody };
     }
@@ -95,13 +106,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (isDbUnavailable(exception)) {
-      this.logger.warn(`База данных недоступна: ${req.method} ${req.originalUrl}`);
+      this.logger.warn(`База данных недоступна: ${where}`);
       return { status: 503, body: makeBody('DB_UNAVAILABLE', 'База данных временно недоступна. Повторите позже') };
     }
 
     // Неожиданная ошибка: стек пишем только в лог сервера, клиенту - безопасное сообщение
     const stack = exception instanceof Error ? exception.stack : String(exception);
-    this.logger.error(`${req.method} ${req.originalUrl}`, stack);
+    this.logger.error(where, stack);
     return { status: 500, body: makeBody('INTERNAL_ERROR', 'Внутренняя ошибка сервера. Повторите позже') };
   }
 }

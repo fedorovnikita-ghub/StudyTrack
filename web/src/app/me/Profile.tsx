@@ -28,6 +28,9 @@ export default function Profile() {
           <Link className="btn" href="/courses">
             Мои курсы
           </Link>
+          <Link className="btn" href="/overview">
+            Обзор курсов (GraphQL)
+          </Link>
           {user.role === 'student' && (
             <Link className="btn" href="/results">
               Мои результаты

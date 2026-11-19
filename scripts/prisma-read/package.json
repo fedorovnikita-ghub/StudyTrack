@@ -1,0 +1,21 @@
+{
+  "name": "studytrack-prisma-read",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Изолированный пример: чтение коллекции categories через Prisma и сравнение с Mongoose",
+  "type": "module",
+  "scripts": {
+    "generate": "prisma generate",
+    "start": "prisma generate && node read.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "~6.19.0",
+    "mongoose": "^8.18.0"
+  },
+  "devDependencies": {
+    "prisma": "~6.19.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

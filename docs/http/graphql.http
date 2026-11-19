@@ -1,0 +1,36 @@
+### GraphQL: две Query и отказы
+@api = http://localhost:4000
+
+### Вход
+# @name login
+POST {{api}}/api/v1/auth/login
+Content-Type: application/json
+
+{ "email": "anna.smirnova@studytrack.demo", "password": "demo-pass-2026" }
+
+### myCourses
+POST {{api}}/graphql
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "query": "query($page: Int!) { myCourses(page: $page, limit: 10) { total items { id title category { name } teacher { displayName } } } }", "variables": { "page": 1 } }
+
+### assignment (подставьте id задания)
+POST {{api}}/graphql
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "query": "query($id: ID!) { assignment(id: $id) { title isOwner submissions(limit: 20) { total items { number isLate student { displayName } currentGrade { score } } } } }", "variables": { "id": "000000000000000000000000" } }
+
+### limit больше 20 - VALIDATION_ERROR
+POST {{api}}/graphql
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "query": "{ myCourses(limit: 50) { total } }" }
+
+### Без токена - UNAUTHORIZED
+POST {{api}}/graphql
+Content-Type: application/json
+
+{ "query": "{ myCourses { total } }" }
