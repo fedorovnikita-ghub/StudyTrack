@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { ROLE_LABELS } from '@/lib/types';
 
@@ -19,6 +20,25 @@ export default function Profile() {
           <dt>Роль</dt>
           <dd>{ROLE_LABELS[user.role]}</dd>
         </dl>
+      </section>
+
+      <section className="card">
+        <h2>Разделы</h2>
+        <p className="actions">
+          <Link className="btn" href="/courses">
+            Мои курсы
+          </Link>
+          {user.role === 'teacher' && (
+            <>
+              <Link className="btn" href="/courses/new">
+                Создать курс
+              </Link>
+              <Link className="btn" href="/categories">
+                Категории
+              </Link>
+            </>
+          )}
+        </p>
       </section>
     </div>
   );

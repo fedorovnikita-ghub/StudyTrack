@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ROLE_LABELS } from '@/lib/types';
 
-// Навигация зависит от роли. Ссылки на разделы будут добавляться по мере готовности страниц
+// Навигация зависит от роли
 export default function SiteHeader() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -24,6 +24,8 @@ export default function SiteHeader() {
         <nav className="nav" aria-label="Основная навигация">
           {user ? (
             <>
+              <Link href="/courses">Мои курсы</Link>
+              {user.role === 'teacher' && <Link href="/categories">Категории</Link>}
               <Link href="/me">Личный кабинет</Link>
               <span className="nav-user muted">
                 {user.displayName} · {ROLE_LABELS[user.role]}

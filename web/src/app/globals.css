@@ -333,3 +333,222 @@ main {
   margin: 0;
   word-break: break-word;
 }
+
+/* ---------- Заголовок страницы с действием ---------- */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-head h1,
+.page-head h2 {
+  margin: 0;
+}
+
+/* ---------- Фильтры и поиск ---------- */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.search-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.form-inline {
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.form-inline .field {
+  flex: 1 1 260px;
+}
+
+.form-inline .btn {
+  margin-top: 28px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Вкладки ---------- */
+.tabs {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tab {
+  padding: 8px 14px;
+  border: 0;
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tab + .tab {
+  border-left: 1px solid var(--border);
+}
+
+.tab-active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ---------- Списки карточек ---------- */
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.course-card h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.course-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.course-card p {
+  margin: 6px 0 0;
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+}
+
+.refreshing {
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.alert-text {
+  margin: 0 0 8px;
+}
+
+/* ---------- Пагинация ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* ---------- Таблицы ---------- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* ---------- Подтверждение действия ---------- */
+.confirm-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.confirm-question {
+  margin: 0;
+  font-weight: 500;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #a32121;
+}
+
+/* Скрыт визуально, но доступен экранным чтецам */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

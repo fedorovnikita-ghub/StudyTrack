@@ -15,6 +15,7 @@ export interface Enrollment {
   // конфликтуют на этом документе, и номер версии не может задвоиться
   guardVersion: number;
   removedAt: Date | null;
+  removeReason: string; // причина отчисления, обязательна при отчислении
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,7 @@ export const EnrollmentSchema = new Schema<Enrollment>(
     enrolledBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     guardVersion: { type: Number, default: 0, min: 0, validate: integerValidator },
     removedAt: { type: Date, default: null },
+    removeReason: { type: String, trim: true, default: '', maxlength: [500, 'Причина не длиннее 500 символов'] },
   },
   { collection: 'enrollments', timestamps: true, versionKey: false },
 );

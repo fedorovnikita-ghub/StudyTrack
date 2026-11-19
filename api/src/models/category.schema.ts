@@ -1,5 +1,6 @@
 import { HydratedDocument, Schema, Types } from 'mongoose';
 import { LIMITS } from '../common/limits';
+import { integerValidator } from './common';
 
 export const CATEGORY_MODEL = 'Category';
 
@@ -7,6 +8,10 @@ export interface Category {
   name: string;
   parentId: Types.ObjectId | null; // null - категория верхнего уровня
   archived: boolean; // вместо удаления: курсы со ссылкой на категорию остаются целыми
+  // Счетчики меняются в одной транзакции с созданием курса/подкатегории.
+  // Архивирование разрешено только при нулях - это условие проверяется атомарно в одном документе
+  coursesCount: number;
+  childrenCount: number; // действующие (не архивные) подкатегории
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +30,8 @@ export const CategorySchema = new Schema<Category>(
     },
     parentId: { type: Schema.Types.ObjectId, ref: CATEGORY_MODEL, default: null },
     archived: { type: Boolean, default: false },
+    coursesCount: { type: Number, default: 0, min: 0, validate: integerValidator },
+    childrenCount: { type: Number, default: 0, min: 0, validate: integerValidator },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   { collection: 'categories', timestamps: true, versionKey: false },

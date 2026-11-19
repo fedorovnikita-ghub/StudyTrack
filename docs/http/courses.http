@@ -1,0 +1,59 @@
+### Категории, курсы и зачисления
+@api = http://localhost:4000/api/v1
+
+### Вход преподавателя (создан командой npm run user:create)
+# @name teacher
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "teacher@studytrack.local", "password": "teacher-password-1" }
+
+### Создать категорию
+# @name category
+POST {{api}}/categories
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "name": "Программирование" }
+
+### Создать курс
+# @name course
+POST {{api}}/courses
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{
+  "title": "Веб-программирование на JS",
+  "description": "Node.js, NestJS, MongoDB, Next.js",
+  "categoryId": "{{category.response.body.id}}"
+}
+
+### Мои курсы с поиском
+GET {{api}}/courses?search=веб&page=1&limit=20
+Authorization: Bearer {{teacher.response.body.token}}
+
+### Попытка архивировать категорию с курсом - ожидаем 409 CATEGORY_IN_USE
+POST {{api}}/categories/{{category.response.body.id}}/archive
+Authorization: Bearer {{teacher.response.body.token}}
+
+### Изменить курс с устаревшей версией - ожидаем 409 VERSION_CONFLICT
+PATCH {{api}}/courses/{{course.response.body.id}}
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "title": "Новое название", "version": 999 }
+
+### Зачислить студента по email
+POST {{api}}/courses/{{course.response.body.id}}/enrollments
+Authorization: Bearer {{teacher.response.body.token}}
+Content-Type: application/json
+
+{ "email": "student.test@example.com" }
+
+### Студенты курса
+GET {{api}}/courses/{{course.response.body.id}}/enrollments
+Authorization: Bearer {{teacher.response.body.token}}
+
+### Неверный формат id - ожидаем 400 INVALID_ID
+GET {{api}}/courses/not-an-id
+Authorization: Bearer {{teacher.response.body.token}}
