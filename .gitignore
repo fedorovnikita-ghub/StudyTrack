@@ -1,0 +1,22 @@
+# Зависимости и сборка
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Секреты: в репозиторий попадает только .env.example
+.env
+.env.*
+!.env.example
+.gitconfig-work
+
+# Логи и системный мусор
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
