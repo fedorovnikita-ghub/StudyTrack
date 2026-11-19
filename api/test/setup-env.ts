@@ -1,9 +1,18 @@
 // Выполняется перед каждым файлом тестов, до импорта приложения.
 // Подменяет рабочую базу на тестовую и не дает случайно очистить рабочую
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { parseEnv } from 'node:util';
 
+// Jest дает каждому файлу тестов свою копию process.env, а process.loadEnvFile()
+// пишет в окружение самого процесса. Поэтому .env разбираем сами и кладем значения
+// прямо в process.env теста (уже заданные переменные не перезаписываем)
 if (existsSync('.env')) {
-  process.loadEnvFile('.env');
+  const values = parseEnv(readFileSync('.env', 'utf8'));
+  for (const [key, value] of Object.entries(values)) {
+    if (process.env[key] === undefined && value !== undefined) {
+      process.env[key] = value;
+    }
+  }
 }
 
 function databaseName(uri: string): string {
