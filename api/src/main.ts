@@ -4,6 +4,7 @@ import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express
 import { AppModule } from './app.module';
 import { configureApp } from './app.setup';
 import { config } from './config';
+import { setupSwagger } from './swagger.setup';
 
 async function bootstrap() {
   // Express-адаптер выбран явно, как требует ТЗ
@@ -11,12 +12,14 @@ async function bootstrap() {
     bodyParser: false,
   });
   configureApp(app);
+  setupSwagger(app); // документация: http://localhost:4000/api/docs
 
   // При остановке (Ctrl+C) Nest закроет соединение с MongoDB и сервер
   app.enableShutdownHooks();
 
   await app.listen(config.port);
   Logger.log(`API запущен: http://localhost:${config.port}/api/v1`, 'Bootstrap');
+  Logger.log(`Документация OpenAPI: http://localhost:${config.port}/api/docs`, 'Bootstrap');
 }
 
 process.on('unhandledRejection', (reason) => {

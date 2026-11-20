@@ -1,9 +1,11 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { LIMITS } from './limits';
 
 // Общие параметры страниц для всех списков: page=1, limit=20, максимум limit=100
 export class PageQueryDto {
+  @ApiPropertyOptional({ description: 'Номер страницы', minimum: 1, maximum: LIMITS.page.maxPage, default: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'Номер страницы должен быть целым числом' })
@@ -11,6 +13,7 @@ export class PageQueryDto {
   @Max(LIMITS.page.maxPage, { message: 'Слишком большой номер страницы' })
   page: number = 1;
 
+  @ApiPropertyOptional({ description: 'Размер страницы', minimum: 1, maximum: LIMITS.page.maxLimit, default: 20 })
   @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'Размер страницы должен быть целым числом' })

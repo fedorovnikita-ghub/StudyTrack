@@ -218,6 +218,8 @@ npm start
 
 ## REST API
 
+**Документация OpenAPI (Swagger):** http://localhost:4000/api/docs, JSON — http://localhost:4000/api/docs-json. Выгрузка в файл для сдачи: `npm run openapi:export` в папке `api` создает [docs/openapi.json](docs/openapi.json). Поля, обязательность и диапазоны входа берутся из DTO, для каждого маршрута описаны успешный ответ и ошибки. У главной команды (сдача версии) есть успешный пример и несколько ошибочных.
+
 Все маршруты имеют префикс `/api/v1`. Списки возвращают `{ items, page, limit, total }`: по умолчанию `page=1`, `limit=20`, максимум `limit=100`. Неизвестные поля в теле и параметрах запроса отклоняются с ошибкой 400.
 
 | Маршрут | Доступ | Действие |
@@ -315,6 +317,7 @@ Socket.IO работает на том же порту, что и API. Клие�
 ## Документация
 
 - [Чек-лист запуска и приемки](docs/checklist.md)
+- [OpenAPI](docs/openapi.json) (живая версия — `/api/docs`)
 - [Модель данных, индексы и согласованность](docs/data-model.md)
 - [Отчеты, CSV и report-service: формулы, ручной расчет, контракт](docs/reports.md)
 - [Кеш, explain и производительность](docs/performance.md), результаты замеров — в [docs/perf](docs/perf)
