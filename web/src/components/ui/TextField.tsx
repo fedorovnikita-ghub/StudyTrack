@@ -7,7 +7,7 @@ interface TextFieldProps {
   name: string;
   value: string;
   onChange: (value: string) => void;
-  type?: 'text' | 'email' | 'password' | 'number' | 'datetime-local' | 'search';
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'datetime-local' | 'search';
   error?: string;
   hint?: string;
   required?: boolean;
