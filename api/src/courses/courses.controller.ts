@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthUser } from '../auth/auth.types';
 import { CurrentUser, Roles } from '../auth/decorators';
 import { ObjectIdPipe } from '../common/object-id.pipe';
@@ -34,8 +35,14 @@ export class CoursesController {
 
   // GET /api/v1/courses/:id - карточка курса (владелец или зачисленный студент)
   @Get(':id')
-  getOne(@Param('id', ObjectIdPipe) id: string, @CurrentUser() user: AuthUser) {
-    return this.coursesService.getOne(id, user);
+  async getOne(
+    @Param('id', ObjectIdPipe) id: string,
+    @CurrentUser() user: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { course, cacheHit } = await this.coursesService.getOne(id, user);
+    res.setHeader('X-Cache', cacheHit ? 'HIT' : 'MISS'); // видно в DevTools -> Network
+    return course;
   }
 
   // PATCH /api/v1/courses/:id - редактирование с проверкой version

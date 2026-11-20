@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AssignmentsModule } from './assignments/assignments.module';
 import { AuthModule } from './auth/auth.module';
+import { CacheModule } from './cache/cache.module';
 import { CategoriesModule } from './categories/categories.module';
 import { config } from './config';
 import { CoursesModule } from './courses/courses.module';
@@ -19,6 +20,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
       maxPoolSize: 20,
     }),
     DatabaseModule,
+    CacheModule,
     AuthModule,
     CategoriesModule,
     CoursesModule,

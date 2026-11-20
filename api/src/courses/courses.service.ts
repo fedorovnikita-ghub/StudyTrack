@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, FilterQuery, Model } from 'mongoose';
 import { AuthUser } from '../auth/auth.types';
-import { AppError, conflict, validationError } from '../common/app-error';
+import { CacheService } from '../cache/cache.service';
+import { AppError, conflict, notFound, validationError } from '../common/app-error';
 import { loadNames } from '../common/names';
 import { Page, skipOf } from '../common/pagination';
 import { searchRegex } from '../common/text';
@@ -52,6 +53,10 @@ interface CourseLike {
   updatedAt: Date;
 }
 
+export function courseCacheKey(courseId: string): string {
+  return `course:${courseId}`;
+}
+
 // Студент может быть зачислен на много курсов, но для списка берем разумный предел
 const MAX_STUDENT_COURSES = 1000;
 
@@ -64,6 +69,7 @@ export class CoursesService {
     @InjectModel(USER_MODEL) private readonly users: Model<User>,
     @InjectConnection() private readonly connection: Connection,
     private readonly access: CourseAccessService,
+    private readonly cache: CacheService,
   ) {}
 
   // "Мои курсы": преподавателю - свои, студенту - те, куда он зачислен
@@ -116,12 +122,25 @@ export class CoursesService {
     });
   }
 
-  async getOne(courseId: string, user: AuthUser): Promise<CourseDetailsResponse> {
-    const course = await this.access.getAccessibleCourse(courseId, user);
-    const [response] = await this.toResponses([course]);
-    const isOwner = String(course.teacherId) === user.id;
+  // Карточка курса. Общая часть (название, описание, категория, преподаватель) берется из кеша на 60 секунд.
+  // Проверка доступа НЕ кешируется: владение сверяется с карточкой, зачисление студента читается из базы
+  // на каждом запросе. Число студентов (только владельцу) тоже всегда из базы
+  async getOne(courseId: string, user: AuthUser): Promise<{ course: CourseDetailsResponse; cacheHit: boolean }> {
+    const { value: card, hit } = await this.cache.getOrLoad(courseCacheKey(courseId), async () => {
+      const course = await this.courses.findById(courseId).lean();
+      if (!course) throw notFound('Курс не найден');
+      const [response] = await this.toResponses([course]);
+      return response;
+    });
+
+    const isOwner = user.role === 'teacher' && card.teacher.id === user.id;
+    const allowed = isOwner || (user.role === 'student' && (await this.access.isEnrolled(courseId, user.id)));
+    if (!allowed) {
+      throw notFound('Курс не найден');
+    }
+
     const studentsCount = isOwner ? await this.enrollments.countDocuments({ courseId, status: 'active' }) : null;
-    return { ...response, isOwner, studentsCount };
+    return { course: { ...card, isOwner, studentsCount }, cacheHit: hit };
   }
 
   async update(courseId: string, dto: UpdateCourseDto, user: AuthUser): Promise<CourseResponse> {
@@ -146,6 +165,8 @@ export class CoursesService {
     if (!updated) {
       throw conflict('VERSION_CONFLICT', 'Курс уже изменили в другом окне. Обновите данные и повторите');
     }
+    // Очистка кеша сразу после успешного изменения: следующее чтение получит актуальные данные
+    this.cache.delete(courseCacheKey(courseId));
 
     const [response] = await this.toResponses([updated]);
     return response;

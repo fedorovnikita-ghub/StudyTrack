@@ -14,7 +14,9 @@
     "seed:reset": "tsx src/scripts/seed.ts --reset",
     "test": "jest --runInBand",
     "test:unit": "jest test/unit",
-    "test:integration": "jest --runInBand test/integration"
+    "test:integration": "jest --runInBand test/integration",
+    "perf:cache": "tsx src/scripts/perf-cache.ts",
+    "perf:explain": "tsx src/scripts/perf-explain.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.0.0",

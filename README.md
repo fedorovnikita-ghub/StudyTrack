@@ -21,7 +21,8 @@ StudyTrack/
 ├── web/              сайт: Next.js 16, React 19, TypeScript
 ├── report-service/   отдельный сервис отчетов на Express
 └── scripts/
-    └── prisma-read/  изолированный пример чтения через Prisma 6 и сравнение с Mongoose
+    ├── prisma-read/      изолированный пример чтения через Prisma 6 и сравнение с Mongoose
+    └── express-example/  учебный маршрут Express с middleware и его соответствие NestJS
 ```
 
 ## Версии
@@ -184,6 +185,8 @@ npm run test:integration  # только HTTP с тестовой MongoDB
 | `test/integration/reports.spec.ts` | HTTP + MongoDB, 4 | отчет курса и права, report-service работает / остановлен (503 только для отчета), CSV с экранированием и проверками до заголовков | заглушка report-service: проверяет контракт со стороны API, но не сам сервис |
 | `report-service/test/*.test.js` | node:test, 8 | сводка на ручном примере, проверка ключа, типов, конечности чисел, предела массива, битого JSON | нет: настоящее Express-приложение |
 | `test/integration/graphql.spec.ts` | GraphQL + MongoDB, 3 | `myCourses` и `assignment` с теми же правами, что REST: свои версии студенту, все — преподавателю, NOT_FOUND постороннему, UNAUTHORIZED без входа. Ограничения `limit`, числа полей и вложенности | нет |
+| `test/unit/cache.spec.ts` | unit, 4 | срок 60 с, предел 100 ключей, ошибка загрузки не кешируется, копия значения, гонка чтения и очистки | фиктивное время Jest |
+| `test/integration/cache.spec.ts` | HTTP + MongoDB, 3 | MISS → HIT → изменение → свежие данные; доступ не кешируется; два одновременных PATCH курса | нет |
 | `test/integration/concurrency.spec.ts` | HTTP + MongoDB, 3 | 5 одновременных сдач → номера 1..5, две одновременные оценки → одна запись, два зачисления → одно действующее | нет |
 
 Интеграционные тесты поднимают настоящий `AppModule` с той же настройкой, что в `main.ts` (`src/app.setup.ts`), и проверяют итоговые документы в базе, а не только HTTP-коды. Преподаватель в тестах создается прямо в базе: через сайт эту роль получить нельзя.
@@ -275,6 +278,18 @@ npm start
 
 Только чтение коллекции `categories` через Prisma и Mongoose со сравнением результата. Подробности и сопоставление — в [scripts/prisma-read/README.md](scripts/prisma-read/README.md).
 
+## Кеш и замеры
+
+Карточка курса кешируется в памяти API на 60 секунд (до 100 ключей) и очищается после изменения курса. Права и личные данные не кешируются. В ответе есть заголовок `X-Cache: HIT|MISS`.
+
+```bash
+cd api
+npm run perf:cache     # холодный/теплый кеш и актуальность после изменения (нужен запущенный API и seed)
+npm run perf:explain   # explain до/после индекса на 5000 фактах (в тестовой базе)
+```
+
+Подробно — в [docs/performance.md](docs/performance.md).
+
 ## Реальное время (Socket.IO)
 
 Socket.IO работает на том же порту, что и API. Клиент передает JWT в `handshake.auth.token`. Сервер проверяет его так же, как для REST, и сам кладет сокет в личную комнату `user:<id>`. Клиент не выбирает подписки, поэтому получить чужие события нельзя.
@@ -302,6 +317,8 @@ Socket.IO работает на том же порту, что и API. Клие�
 - [Чек-лист запуска и приемки](docs/checklist.md)
 - [Модель данных, индексы и согласованность](docs/data-model.md)
 - [Отчеты, CSV и report-service: формулы, ручной расчет, контракт](docs/reports.md)
+- [Кеш, explain и производительность](docs/performance.md), результаты замеров — в [docs/perf](docs/perf)
+- [Учебный пример Express и соответствие NestJS](scripts/express-example/README.md)
 - [GraphQL: схема, примеры двух Query, ограничения, отличие от REST](docs/graphql.md) и сама схема [api/schema.gql](api/schema.gql)
 - [Пример Prisma и сравнение с Mongoose](scripts/prisma-read/README.md)
 

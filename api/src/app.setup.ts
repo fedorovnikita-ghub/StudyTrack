@@ -14,8 +14,8 @@ export function configureApp(app: NestExpressApplication): void {
   app.use(bodyParserErrorHandler);
 
   app.setGlobalPrefix('api/v1');
-  // Content-Disposition открыт браузеру, чтобы сайт узнал имя скачиваемого CSV
-  app.enableCors({ origin: config.webOrigins, exposedHeaders: ['Content-Disposition'] });
+  // Браузеру открыты: Content-Disposition (имя CSV) и X-Cache (HIT/MISS для проверки кеша)
+  app.enableCors({ origin: config.webOrigins, exposedHeaders: ['Content-Disposition', 'X-Cache'] });
   app.useGlobalPipes(createValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
 
