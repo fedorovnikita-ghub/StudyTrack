@@ -20,6 +20,9 @@ export default function SiteHeader() {
     <header className="site-header">
       <div className="container site-header__inner">
         <Link href="/" className="logo">
+          {/* Обычный img: значок маленький и векторный, оптимизация next/image ему не нужна */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icon.svg" alt="" width={24} height={24} />
           StudyTrack
         </Link>
         <nav className="nav" aria-label="Основная навигация">

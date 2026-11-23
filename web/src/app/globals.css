@@ -82,14 +82,23 @@ h3 {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
   font-size: 1.15rem;
   color: var(--text);
   text-decoration: none;
 }
 
-main {
-  padding: 24px 0 48px;
+.logo img {
+  display: block;
+}
+
+/* main.container: класс сильнее тега, поэтому вертикальные отступы задаем вместе с ним */
+main.container {
+  padding-top: 24px;
+  padding-bottom: 48px;
 }
 
 .card {
@@ -102,6 +111,16 @@ main {
 
 .stack > * + * {
   margin-top: 16px;
+}
+
+/* Первый и последний элемент не добавляют лишний отступ к паддингу карточки */
+.card > :first-child,
+.stack > :first-child {
+  margin-top: 0;
+}
+
+.card > :last-child {
+  margin-bottom: 0;
 }
 
 .muted {
@@ -175,8 +194,9 @@ main {
 }
 
 @media (max-width: 600px) {
-  main {
-    padding: 16px 0 32px;
+  main.container {
+    padding-top: 16px;
+    padding-bottom: 32px;
   }
 
   .card {
@@ -618,4 +638,24 @@ main {
 .rt-bad {
   background: var(--danger-bg);
   color: var(--danger);
+}
+
+/* ---------- Шапка на узком экране ---------- */
+@media (max-width: 760px) {
+  .site-header__inner {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    row-gap: 8px;
+  }
+
+  /* Ссылки остаются рядом с логотипом, пока помещаются, и переносятся строкой ниже, когда их много */
+  .nav {
+    gap: 6px 14px;
+    font-size: 0.95rem;
+  }
+
+  /* Имя и роль видны в личном кабинете, в шапке на телефоне они только мешают */
+  .nav-user {
+    display: none;
+  }
 }
