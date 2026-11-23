@@ -659,3 +659,15 @@ main.container {
     display: none;
   }
 }
+
+/* Блоки "название - значение" на телефоне в одну колонку: подпись над значением */
+@media (max-width: 480px) {
+  .details {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .details dd + dt {
+    margin-top: 10px;
+  }
+}
