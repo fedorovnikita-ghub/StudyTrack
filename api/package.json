@@ -17,7 +17,8 @@
     "test:integration": "jest --runInBand test/integration",
     "perf:cache": "tsx src/scripts/perf-cache.ts",
     "perf:explain": "tsx src/scripts/perf-explain.ts",
-    "openapi:export": "nest build && node dist/scripts/export-openapi.js"
+    "openapi:export": "nest build && node dist/scripts/export-openapi.js",
+    "docs:samples": "tsx src/scripts/sample-docs.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.0.0",

@@ -11,7 +11,29 @@
 | Фёдоров Никита (студент А) | курсы, категории, зачисления, задания; отчеты, CSV-выгрузка, report-service |
 | Завалин Владислав (студент Б) | сдача версий, оценивание, личные результаты; Socket.IO, GraphQL, кеш |
 
-Подробная таблица «функция — ответственный — файлы — тест» будет дополнена по ходу работы.
+### Вклад по функциям
+
+Работа разделена по вертикальным сценариям: у каждого есть страницы сайта, серверные операции и тесты. Общие решения (модель данных, доступ, формат ошибок, запуск) согласованы вместе.
+
+| Функция / страница | Ответственный | Основные файлы | Тесты | Участие второго |
+|---|---|---|---|---|
+| Регистрация, вход, роли | оба | `api/src/auth`, `web/src/app/login`, `web/src/app/register`, `web/src/lib/auth-context.tsx` | `auth.spec.ts`, `access.spec.ts` | общая основа |
+| Модель данных, индексы, seed | оба | `api/src/models`, `api/src/scripts/seed.ts`, `docs/data-model.md` | все интеграционные | общая основа |
+| Категории | Фёдоров Никита | `api/src/categories`, `web/src/app/categories` | интеграционные (fixture), чек-лист 6.3 | ревью |
+| Курсы, «Мои курсы», редактирование с `version` | Фёдоров Никита | `api/src/courses/courses.*`, `web/src/app/courses` | `access.spec.ts`, `cache.spec.ts` | кеш карточки курса |
+| Зачисление и отчисление | Фёдоров Никита | `api/src/courses/enrollments.service.ts`, `EnrollmentsPanel.tsx` | `access.spec.ts`, `concurrency.spec.ts` | ревью |
+| Задания | Фёдоров Никита | `api/src/assignments`, `AssignmentsSection.tsx`, `CreateAssignmentForm.tsx` | `main-flow.spec.ts` | ревью |
+| **Сдача версии (главная операция)** | Завалин Владислав | `api/src/submissions`, `SubmitForm.tsx`, `MyVersions.tsx`, `SubmissionView.tsx` | `submission-rules.spec.ts`, `main-flow.spec.ts`, `concurrency.spec.ts` | `guardVersion` в модели зачислений |
+| Оценивание, кабинет оценивания | Завалин Владислав | `api/src/grades`, `GradeForm.tsx`, `GradeHistory.tsx`, `web/src/app/grading` | `grade-rules.spec.ts`, `main-flow.spec.ts`, `concurrency.spec.ts` | ревью |
+| Личные результаты | Завалин Владислав | `grades.service.ts` (`myResults`), `web/src/app/results` | `main-flow.spec.ts` | ревью |
+| Отчет курса, CSV-выгрузка | Фёдоров Никита | `api/src/reports`, `web/src/app/courses/[id]/report` | `report-calc.spec.ts`, `csv-and-dates.spec.ts`, `reports.spec.ts` | ревью |
+| report-service | Фёдоров Никита | `report-service/` | `report-service/test`, `reports.spec.ts` | ревью |
+| Реальное время (Socket.IO) | Завалин Владислав | `api/src/realtime`, `web/src/lib/realtime.tsx`, `RealtimeIndicator.tsx` | `realtime.spec.ts` | ревью |
+| GraphQL | Завалин Владислав | `api/src/gql`, `web/src/app/overview`, `web/src/lib/graphql.ts` | `graphql.spec.ts` | ревью |
+| Кеш, explain, замеры | Завалин Владислав | `api/src/cache`, `api/src/scripts/perf-*.ts`, `docs/performance.md` | `cache.spec.ts` (unit и интеграционный) | ревью |
+| Пример Prisma | Фёдоров Никита | `scripts/prisma-read` | сравнение результата в самом скрипте | ревью |
+| Учебный пример Express | Завалин Владислав | `scripts/express-example` | ручная проверка (чек-лист 6.11) | ревью |
+| OpenAPI, документация, чек-лист | оба | `api/src/common/swagger.ts`, `docs/` | чек-лист 6.10 | общая работа |
 
 ## Структура
 
@@ -314,11 +336,26 @@ Socket.IO работает на том же порту, что и API. Клие�
 4. Студент сдает работу: она появляется в кабинете оценивания без обновления страницы.
 5. Преподаватель ставит оценку: она появляется в истории версий студента.
 
+## Использование ИИ
+
+- **Средство:** Claude (Anthropic), чат с доступом к папке проекта.
+- **Для чего использовался:**
+  - генерация кода по шагам и объяснение решений;
+  - подбор совместимых версий пакетов;
+  - черновики документации.
+- **Как проверяли результат:**
+  - После каждого шага проект запускался локально и проверялся: typecheck, lint, автотесты (49 в `api`, 8 в `report-service`), документы и индексы в MongoDB Atlas.
+  - Ручной проход по [чек-листу](docs/checklist.md) в двух профилях браузера.
+  - Найденные ошибки исправлялись отдельными коммитами `fix: …`.
+- **Понимание кода:** каждый участник разбирает код своей части по таблице вклада и отвечает по нему на защите самостоятельно. Личная переписка с ИИ не прилагается, ТЗ этого не требует.
+
 ## Документация
 
 - [Чек-лист запуска и приемки](docs/checklist.md)
 - [OpenAPI](docs/openapi.json) (живая версия — `/api/docs`)
 - [Модель данных, индексы и согласованность](docs/data-model.md)
+- [Таблица переходов состояний](docs/transitions.md)
+- [Примеры реальных документов коллекций](docs/sample-documents.md) — создаются командой `npm run docs:samples` в папке `api` после `npm run seed`
 - [Отчеты, CSV и report-service: формулы, ручной расчет, контракт](docs/reports.md)
 - [Кеш, explain и производительность](docs/performance.md), результаты замеров — в [docs/perf](docs/perf)
 - [Учебный пример Express и соответствие NestJS](scripts/express-example/README.md)

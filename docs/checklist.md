@@ -272,6 +272,7 @@ npm start
 - [ ] У `POST /assignments/{id}/submissions` пример успешного ответа 201 и ошибки 400/401/403/404/409
 - [ ] Кнопка Authorize: вставить токен из `/auth/login`, выполнить `GET /auth/me` прямо со страницы
 - [ ] `npm run openapi:export` создал `docs/openapi.json`
+- [ ] `npm run docs:samples` (после seed) создал `docs/sample-documents.md`: по два документа каждой коллекции, без `passwordHash`
 
 ### 6.11. Кеш и замеры
 
